@@ -29,7 +29,7 @@
         <label>Alamat</label>
         <input type="text" id="alamat" placeholder="Masukkan alamat..." oninput="cekInput()">
         <label>Tanggal Lahir</label>
-        <input type="text" id="tgl_lahir" placeholder="Contoh: 01/01/2001 atau copas bebas" oninput="cekInput()">
+        <input type="text" id="tgl_lahir" placeholder="Contoh: 01/01/2001" oninput="cekInput()">
         
         <button class="btn-save" id="btnSimpan" onclick="kirimData()" disabled>Simpan Data</button>
         <div id="statusSimpan" class="status-msg"></div>
@@ -50,7 +50,9 @@
             const alamat = document.getElementById('alamat').value.trim();
             const tgl = document.getElementById('tgl_lahir').value.trim();
             const btn = document.getElementById('btnSimpan');
-            btn.disabled = (nama === "" || alamat === "" || tgl === "");
+            if (btn) {
+                btn.disabled = (nama === "" || alamat === "" || tgl === "");
+            }
         }
 
         async function kirimData() {
@@ -83,18 +85,13 @@
             }
         }
 
-        // Fungsi Memaksa Format Tanggal ke Hari/Bulan/Tahun
         function formatTanggalIndo(teks) {
             if (!teks) return "-";
             const date = new Date(teks);
-            
-            // Jika teks yang di-copas bukan format tanggal standar, kembalikan teks aslinya
             if (isNaN(date.getTime()) || teks.length < 5) return teks;
-
             const hari = String(date.getDate()).padStart(2, '0');
             const bulan = String(date.getMonth() + 1).padStart(2, '0');
             const tahun = date.getFullYear();
-
             return `${hari}/${bulan}/${tahun}`;
         }
 
@@ -103,7 +100,11 @@
             const container = document.getElementById('hasilPencarian');
             const btn = document.getElementById('btnCari');
 
-            if(!input) return alert("Ketik nama!");
+            if(!input) {
+                alert("Ketik nama!");
+                return;
+            }
+
             container.innerHTML = "Mencari...";
             btn.disabled = true;
 
@@ -116,4 +117,36 @@
                 } else {
                     container.innerHTML = "";
                     data.forEach(item => {
-                        const div = document
+                        const tglFinal = formatTanggalIndo(item.tgl_lahir);
+                        const div = document.createElement('div');
+                        div.className = 'item-hasil';
+                        div.innerHTML = `
+                            <div style="font-size: 14px;">
+                                <strong>Nama:</strong> ${item.nama}<br>
+                                <strong>Alamat:</strong> ${item.alamat}<br>
+                                <strong>Lahir:</strong> ${tglFinal}
+                            </div>
+                            <div class="copy-container">
+                                <button class="btn-copy-small" onclick="copyTeks('${item.nama}', 'Nama')">Copy Nama</button>
+                                <button class="btn-copy-small" onclick="copyTeks('${item.alamat}', 'Alamat')">Copy Alamat</button>
+                                <button class="btn-copy-small" onclick="copyTeks('${tglFinal}', 'Lahir')">Copy Lahir</button>
+                            </div>
+                        `;
+                        container.appendChild(div);
+                    });
+                }
+            } catch (err) {
+                container.innerHTML = "Gagal mengambil data.";
+            } finally {
+                btn.disabled = false;
+            }
+        }
+
+        function copyTeks(teks, tipe) {
+            navigator.clipboard.writeText(teks).then(() => {
+                alert(tipe + " disalin!");
+            });
+        }
+    </script>
+</body>
+</html>

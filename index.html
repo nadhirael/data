@@ -19,7 +19,15 @@
 
         #matrix-bg { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; opacity: 0.15; }
 
-        /* MENU TAB */
+        /* DASHBOARD STATISTIK */
+        .stats-bar {
+            width: 100%; max-width: 500px; background: rgba(0, 255, 65, 0.1);
+            border: 1px dashed var(--neon-green); padding: 10px; margin-bottom: 20px;
+            display: flex; justify-content: space-around; font-size: 10px; font-weight: bold;
+        }
+        .stats-item { text-align: center; }
+        .stats-val { display: block; font-size: 14px; color: #fff; }
+
         .tab-container { display: flex; gap: 5px; margin-bottom: 20px; width: 100%; max-width: 500px; }
         .tab-btn { 
             flex: 1; padding: 10px; background: transparent; border: 1px solid var(--neon-green); 
@@ -36,7 +44,6 @@
         .glitch { text-align: center; text-transform: uppercase; margin-bottom: 15px; animation: glitch 1.5s infinite; font-size: 1.1rem; }
         @keyframes glitch { 0% { text-shadow: 1px 0 red, -1px 0 blue; } 100% { text-shadow: 0 0 var(--neon-green); } }
 
-        label { font-size: 11px; color: #008f11; display: block; margin-top: 10px; }
         input, textarea { 
             width: 100%; padding: 12px; margin: 5px 0 10px 0; border: 1px solid #004400; 
             background: #000; color: var(--neon-green); font-family: 'Courier New', monospace; outline: none; box-sizing: border-box;
@@ -66,6 +73,12 @@
 
     <canvas id="matrix-bg"></canvas>
 
+    <div class="stats-bar">
+        <div class="stats-item">TOTAL_DB <span id="stat-total" class="stats-val">0</span></div>
+        <div class="stats-item">COMPLETED <span id="stat-done" class="stats-val">0</span></div>
+        <div class="stats-item">PENDING <span id="stat-pending" class="stats-val">0</span></div>
+    </div>
+
     <div class="tab-container">
         <button class="tab-btn active" onclick="openTab('single')">SINGLE</button>
         <button class="tab-btn" onclick="openTab('bulk')">BULK</button>
@@ -82,7 +95,6 @@
 
     <div id="bulk" class="box">
         <h3 class="glitch">> BULK_MODULE</h3>
-        <label>_PASTE_DATA_FROM_EXCEL</label>
         <textarea id="bulkData" placeholder="Nama [TAB] Alamat [TAB] TglLahir"></textarea>
         <button id="btnBulk" class="main-btn" onclick="kirimBulk()">START_BULK_PROCESS</button>
         <div id="bulk-log">Menunggu input...</div>
@@ -98,7 +110,22 @@
     <script>
         const scriptURL = 'https://script.google.com/macros/s/AKfycbxd2HCKHtol2q_uOFGdu0LMSbdaqFuvVXpeMJN07deDA3kxM-jTLtiwg22yAp_tVeM8/exec';
 
-        // Navigasi Tab
+        window.onload = loadStats;
+
+        async function loadStats() {
+            try {
+                // Kita panggil search kosong untuk dapet semua data (limitasi Apps Script)
+                const response = await fetch(`${scriptURL}?nama=`);
+                const data = await response.json();
+                const total = data.length;
+                const done = data.filter(i => i.status === "PROSESSED").length;
+                
+                document.getElementById('stat-total').innerText = total;
+                document.getElementById('stat-done').innerText = done;
+                document.getElementById('stat-pending').innerText = total - done;
+            } catch (e) { console.error("Stats error"); }
+        }
+
         function openTab(tabId) {
             document.querySelectorAll('.box').forEach(b => b.classList.remove('active'));
             document.querySelectorAll('.tab-btn').forEach(t => t.classList.remove('active'));
@@ -106,7 +133,6 @@
             event.currentTarget.classList.add('active');
         }
 
-        // Matrix Bg
         const canvas = document.getElementById('matrix-bg');
         const ctx = canvas.getContext('2d');
         canvas.height = window.innerHeight; canvas.width = window.innerWidth;
@@ -120,7 +146,6 @@
             });
         }, 35);
 
-        // Input Logic
         function cekInput() {
             const n = document.getElementById('nama').value.trim();
             const a = document.getElementById('alamat').value.trim();
@@ -142,7 +167,6 @@
             const log = document.getElementById('bulk-log');
             if(!text) return;
             const lines = text.split('\n');
-            log.innerHTML = "";
             for (let line of lines) {
                 const parts = line.split('\t');
                 if (parts.length < 2) continue;
@@ -151,7 +175,7 @@
                     nama: parts[0]?.trim(), alamat: parts[1]?.trim(), tgl_lahir: parts[2]?.trim() || "-" 
                 })});
             }
-            alert("BULK PROCESS COMPLETE"); location.reload();
+            alert("BULK COMPLETE"); location.reload();
         }
 
         async function cariData() {
@@ -182,6 +206,7 @@
         async function mark(n, a, b) {
             b.innerText = "...";
             await fetch(scriptURL, { method: 'POST', mode: 'no-cors', body: JSON.stringify({ action: "updateStatus", nama: n, alamat: a }) });
+            loadStats(); // Update statistik setelah marking
             cariData();
         }
 

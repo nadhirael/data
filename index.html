@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistem Data Pendataan</title>
+    <title>Sistem Pendataan Lengkap</title>
     <style>
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f0f2f5; padding: 20px; display: flex; flex-direction: column; align-items: center; }
         .box { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); width: 100%; max-width: 400px; margin-bottom: 20px; }
@@ -13,21 +13,17 @@
         input:focus { border-color: #007bff; }
         
         button { width: 100%; padding: 12px; border: none; border-radius: 8px; cursor: pointer; color: white; font-weight: bold; font-size: 15px; transition: 0.3s; }
-        
-        /* Tombol Simpan */
         .btn-save { background: #28a745; }
         .btn-save:hover:not(:disabled) { background: #218838; }
         .btn-save:disabled { background: #cccccc; cursor: not-allowed; color: #666; }
         
-        /* Tombol Cari */
         .btn-search { background: #007bff; }
         .btn-search:hover { background: #0056b3; }
         
-        /* Hasil Pencarian */
         #hasilPencarian { margin-top: 20px; width: 100%; }
         .item-hasil { background: #ffffff; padding: 15px; margin-bottom: 12px; border-left: 5px solid #007bff; border-radius: 6px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
-        .copy-container { display: flex; gap: 10px; margin-top: 15px; }
-        .btn-copy-small { background: #6c757d; font-size: 12px; padding: 8px; flex: 1; border-radius: 6px; border: none; color: white; cursor: pointer; }
+        .copy-container { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 15px; }
+        .btn-copy-small { background: #6c757d; font-size: 11px; padding: 8px; flex: 1; min-width: 90px; border-radius: 6px; border: none; color: white; cursor: pointer; }
         .btn-copy-small:hover { background: #495057; }
         
         .status-msg { text-align: center; font-size: 13px; margin-top: 10px; font-weight: 500; }
@@ -43,6 +39,9 @@
         <label>Alamat</label>
         <input type="text" id="alamat" placeholder="Masukkan alamat..." oninput="cekInput()">
         
+        <label>Tanggal Lahir</label>
+        <input type="date" id="tgl_lahir" oninput="cekInput()">
+        
         <button class="btn-save" id="btnSimpan" onclick="kirimData()" disabled>Simpan Data</button>
         <div id="statusSimpan" class="status-msg"></div>
     </div>
@@ -55,52 +54,53 @@
     </div>
 
     <script>
-        // MASUKKAN URL GOOGLE SCRIPT KAMU DI SINI
-        const scriptURL = 'https://script.google.com/macros/s/AKfycbwpQ8Vs0nn8p82f6D7DJPyeVPMajiiHwk4xHomA3kyS-Z5o79q0uOu5--x0M36_UROl/exec';
+        const scriptURL = 'https://script.google.com/macros/s/AKfycbwmR4-sHAs74CeymWSMTb4EEh0YrXfbPQa--mx9yonZ8PyH8onbJeGfy_iNww4c759s/exec';
 
-        // Fungsi Validasi Input agar tombol hanya aktif jika tidak kosong
+        // Fungsi cek agar tombol simpan aktif jika semua kolom terisi
         function cekInput() {
             const nama = document.getElementById('nama').value.trim();
             const alamat = document.getElementById('alamat').value.trim();
+            const tgl = document.getElementById('tgl_lahir').value;
             const btn = document.getElementById('btnSimpan');
             
-            btn.disabled = (nama === "" || alamat === "");
+            btn.disabled = (nama === "" || alamat === "" || tgl === "");
         }
 
-        // Fungsi Simpan ke Google Sheets
+        // Fungsi Kirim Data
         async function kirimData() {
             const nama = document.getElementById('nama').value;
             const alamat = document.getElementById('alamat').value;
+            const tgl = document.getElementById('tgl_lahir').value;
             const btn = document.getElementById('btnSimpan');
             const status = document.getElementById('statusSimpan');
 
             btn.disabled = true;
             btn.innerText = "Mengirim...";
-            status.style.color = "#666";
-            status.innerText = "Sedang menghubungkan ke Sheets...";
+            status.innerText = "Proses simpan...";
 
             try {
                 await fetch(scriptURL, { 
                     method: 'POST', 
                     mode: 'no-cors', 
-                    body: JSON.stringify({ nama: nama, alamat: alamat }) 
+                    body: JSON.stringify({ nama: nama, alamat: alamat, tgl_lahir: tgl }) 
                 });
                 
                 status.style.color = "#28a745";
                 status.innerText = "✓ Data berhasil disimpan!";
                 document.getElementById('nama').value = "";
                 document.getElementById('alamat').value = "";
-                cekInput(); // Matikan tombol lagi karena input sudah kosong
+                document.getElementById('tgl_lahir').value = "";
+                cekInput();
             } catch (err) {
                 status.style.color = "#dc3545";
-                status.innerText = "Gagal menyimpan data.";
+                status.innerText = "Gagal menyimpan.";
                 btn.disabled = false;
             } finally {
                 btn.innerText = "Simpan Data";
             }
         }
 
-        // Fungsi Cari Data dari Google Sheets
+        // Fungsi Cari Data
         async function cariData() {
             const input = document.getElementById('cariNama').value;
             const container = document.getElementById('hasilPencarian');
@@ -108,7 +108,7 @@
 
             if(!input) return alert("Ketik nama untuk mencari!");
 
-            container.innerHTML = "<p style='text-align:center; color:#666;'>Mencari data...</p>";
+            container.innerHTML = "<p style='text-align:center;'>Mencari...</p>";
             btn.disabled = true;
 
             try {
@@ -122,14 +122,20 @@
                     data.forEach(item => {
                         const div = document.createElement('div');
                         div.className = 'item-hasil';
+                        
+                        // Format tanggal lahir ke format Indo (dd/mm/yyyy)
+                        const tglFormated = item.tgl_lahir ? item.tgl_lahir.split('-').reverse().join('/') : '-';
+
                         div.innerHTML = `
-                            <div style="font-size: 14px; color: #1c1e21;">
+                            <div style="font-size: 14px;">
                                 <strong>Nama:</strong> ${item.nama}<br>
-                                <strong>Alamat:</strong> ${item.alamat}
+                                <strong>Alamat:</strong> ${item.alamat}<br>
+                                <strong>Lahir:</strong> ${tglFormated}
                             </div>
                             <div class="copy-container">
                                 <button class="btn-copy-small" onclick="copyTeks('${item.nama}', 'Nama')">Copy Nama</button>
                                 <button class="btn-copy-small" onclick="copyTeks('${item.alamat}', 'Alamat')">Copy Alamat</button>
+                                <button class="btn-copy-small" onclick="copyTeks('${tglFormated}', 'Tgl Lahir')">Copy Lahir</button>
                             </div>
                         `;
                         container.appendChild(div);
@@ -142,12 +148,10 @@
             }
         }
 
-        // Fungsi Salin Teks per Bagian
+        // Fungsi Salin
         function copyTeks(teks, tipe) {
             navigator.clipboard.writeText(teks).then(() => {
                 alert(tipe + " berhasil disalin!");
-            }).catch(err => {
-                console.error('Gagal copy: ', err);
             });
         }
     </script>

@@ -20,9 +20,10 @@
             flex-direction: column; 
             align-items: center; 
             overflow-x: hidden;
+            margin: 0;
         }
 
-        /* ANIMASI BACKGROUND MATRIX */
+        /* MATRIX BACKGROUND */
         #matrix-bg {
             position: fixed;
             top: 0; left: 0;
@@ -30,6 +31,16 @@
             z-index: -1;
             opacity: 0.15;
         }
+
+        .scanline {
+            width: 100%; height: 2px;
+            background: rgba(0, 255, 65, 0.1);
+            position: fixed;
+            top: 0; z-index: 10;
+            animation: scan 4s linear infinite;
+            pointer-events: none;
+        }
+        @keyframes scan { from { top: 0; } to { top: 100%; } }
 
         .box { 
             background: rgba(26, 26, 26, 0.9); 
@@ -42,23 +53,23 @@
             position: relative;
         }
 
-        /* GLITCH EFFECT PADA JUDUL */
         .glitch {
             font-size: 1.2rem;
             text-align: center;
             text-transform: uppercase;
             position: relative;
-            animation: glitch 1s infinite;
+            margin-bottom: 15px;
+            animation: glitch 1.5s infinite;
         }
 
         @keyframes glitch {
-            0% { text-shadow: 2px 0 red, -2px 0 blue; }
-            25% { text-shadow: -2px 0 red, 2px 0 blue; }
-            50% { text-shadow: 2px -2px red, -2px 2px blue; }
+            0% { text-shadow: 1px 0 red, -1px 0 blue; }
+            20% { text-shadow: -1px 0 red, 1px 0 blue; }
+            40% { text-shadow: 1px -1px red, -1px 1px blue; }
             100% { text-shadow: 0 0 var(--neon-green); }
         }
 
-        label { font-size: 11px; color: #008f11; text-transform: uppercase; }
+        label { font-size: 11px; color: #008f11; text-transform: uppercase; display: block; margin-top: 10px; }
 
         input { 
             width: 100%; 
@@ -69,6 +80,7 @@
             color: var(--neon-green);
             font-family: 'Courier New', monospace;
             outline: none;
+            box-sizing: border-box;
         }
 
         button { 
@@ -79,32 +91,40 @@
             color: #000;
             font-weight: bold; 
             cursor: pointer;
+            text-transform: uppercase;
             transition: all 0.2s;
         }
 
-        button:hover:not(:disabled) { box-shadow: 0 0 20px var(--neon-green); }
+        button:hover:not(:disabled) { box-shadow: 0 0 20px var(--neon-green); background: #00cc33; }
         button:disabled { filter: grayscale(1); opacity: 0.3; cursor: not-allowed; }
+
+        #hasilPencarian { margin-top: 20px; width: 100%; }
 
         .item-hasil { 
             border: 1px solid var(--neon-green); 
-            padding: 10px; 
-            margin-top: 10px; 
-            animation: fadeIn 0.5s ease-in;
+            background: rgba(0,0,0,0.5);
+            padding: 15px; 
+            margin-bottom: 10px; 
+            animation: fadeIn 0.4s ease-out;
         }
 
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
 
-        .status-msg { font-size: 12px; margin-top: 10px; min-height: 15px; }
-
-        /* SCANLINE ANIMATION */
-        .scanline {
-            width: 100%; height: 2px;
-            background: rgba(0, 255, 65, 0.1);
-            position: fixed;
-            top: 0; z-index: 10;
-            animation: scan 4s linear infinite;
+        .copy-container { display: flex; gap: 5px; margin-top: 12px; flex-wrap: wrap; }
+        
+        .btn-copy-small { 
+            background: transparent; 
+            border: 1px solid var(--neon-green);
+            color: var(--neon-green);
+            font-size: 9px; 
+            padding: 6px; 
+            flex: 1; 
+            min-width: 80px;
         }
-        @keyframes scan { from { top: 0; } to { top: 100%; } }
+        
+        .btn-copy-small:hover { background: rgba(0, 255, 65, 0.2); }
+
+        .status-msg { font-size: 12px; margin-top: 10px; text-align: center; min-height: 15px; }
     </style>
 </head>
 <body>
@@ -114,11 +134,11 @@
 
     <div class="box">
         <h3 class="glitch">> SYSTEM_INPUT</h3>
-        <label>_NAME</label>
+        <label>_NAME_ENTRY</label>
         <input type="text" id="nama" oninput="cekInput()" autocomplete="off">
-        <label>_ADDR</label>
+        <label>_ADDR_LOC</label>
         <input type="text" id="alamat" oninput="cekInput()" autocomplete="off">
-        <label>_DOB</label>
+        <label>_DOB_DATA</label>
         <input type="text" id="tgl_lahir" oninput="cekInput()" autocomplete="off">
         
         <button id="btnSimpan" onclick="kirimData()" disabled>EXECUTE_SEND</button>
@@ -126,8 +146,8 @@
     </div>
 
     <div class="box">
-        <h3 class="glitch">> DB_SCANNER</h3>
-        <input type="text" id="cariNama" placeholder="Ketik nama target...">
+        <h3 class="glitch">> DATABASE_QUERY</h3>
+        <input type="text" id="cariNama" placeholder="TYPE_TARGET_NAME..." autocomplete="off">
         <button id="btnCari" onclick="cariData()">SCAN_DATABASE</button>
         <div id="hasilPencarian"></div>
     </div>
@@ -135,12 +155,12 @@
     <script>
         const scriptURL = 'https://script.google.com/macros/s/AKfycbxYNxZElo8c3IM7uB-9BG_ZEL5FCROzJkS6grJLHohAdLk-T2VT3s4dvYbsPqFaJJLM/exec';
 
-        // ANIMASI MATRIX BACKGROUND
+        // MATRIX BACKGROUND ANIMATION
         const canvas = document.getElementById('matrix-bg');
         const ctx = canvas.getContext('2d');
         canvas.height = window.innerHeight;
         canvas.width = window.innerWidth;
-        const characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#$%^&*()*&^%";
+        const characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#$%^&*";
         const fontSize = 10;
         const columns = canvas.width / fontSize;
         const drops = [];
@@ -160,7 +180,7 @@
         }
         setInterval(drawMatrix, 35);
 
-        // LOGIKA SISTEM
+        // SYSTEM LOGIC
         function cekInput() {
             const n = document.getElementById('nama').value.trim();
             const a = document.getElementById('alamat').value.trim();
@@ -172,7 +192,7 @@
             const btn = document.getElementById('btnSimpan');
             const status = document.getElementById('statusSimpan');
             btn.disabled = true;
-            status.innerText = "> UPLOADING DATA...";
+            btn.innerText = "SENDING...";
             
             try {
                 await fetch(scriptURL, { 
@@ -190,44 +210,59 @@
                 document.getElementById('tgl_lahir').value = "";
                 cekInput();
             } catch (err) {
-                status.innerText = "> CONNECTION_ERROR";
+                status.innerText = "> ERROR: CONNECTION LOST";
             } finally {
-                btn.disabled = false;
+                btn.innerText = "EXECUTE_SEND";
             }
         }
 
         async function cariData() {
             const input = document.getElementById('cariNama').value;
             const container = document.getElementById('hasilPencarian');
-            if(!input) return alert("REQUIRED_FIELD");
+            const btn = document.getElementById('btnCari');
             
-            container.innerHTML = "> DECRYPTING DATA...";
+            if(!input) return alert("ENTRY_REQUIRED");
+            
+            container.innerHTML = "> SCANNING DATABASE...";
+            btn.disabled = true;
+
             try {
                 const response = await fetch(`${scriptURL}?nama=${encodeURIComponent(input)}`);
                 const data = await response.json();
                 container.innerHTML = "";
+                
                 if (data.length === 0) {
-                    container.innerHTML = "> NO MATCH";
+                    container.innerHTML = "> NO MATCH FOUND";
                 } else {
                     data.forEach(item => {
                         const div = document.createElement('div');
                         div.className = 'item-hasil';
                         div.innerHTML = `
-                            [NAME]: ${item.nama}<br>[ADDR]: ${item.alamat}<br>[DOB]: ${item.tgl_lahir}
-                            <div style="display:flex; gap:5px; margin-top:5px;">
-                                <button style="padding:2px; font-size:9px;" onclick="copyTeks('${item.nama}')">COPY_NAME</button>
-                                <button style="padding:2px; font-size:9px;" onclick="copyTeks('${item.alamat}')">COPY_ADDR</button>
+                            <div style="font-size: 13px;">
+                                [NAME]: ${item.nama}<br>
+                                [ADDR]: ${item.alamat}<br>
+                                [DOB] : ${item.tgl_lahir}
+                            </div>
+                            <div class="copy-container">
+                                <button class="btn-copy-small" onclick="copyTeks('${item.nama}', 'Nama')">CPY_NAME</button>
+                                <button class="btn-copy-small" onclick="copyTeks('${item.alamat}', 'Addr')">CPY_ADDR</button>
+                                <button class="btn-copy-small" onclick="copyTeks('${item.tgl_lahir}', 'DOB')">CPY_DOB</button>
                             </div>
                         `;
                         container.appendChild(div);
                     });
                 }
-            } catch (err) { container.innerHTML = "> FETCH_ERROR"; }
+            } catch (err) { 
+                container.innerHTML = "> CRITICAL_ERROR: UNABLE TO FETCH"; 
+            } finally {
+                btn.disabled = false;
+            }
         }
 
-        function copyTeks(t) {
-            navigator.clipboard.writeText(t);
-            alert("COPIED TO CLIPBOARD");
+        function copyTeks(teks, tipe) {
+            navigator.clipboard.writeText(teks).then(() => {
+                console.log(tipe + " COPIED");
+            });
         }
     </script>
 </body>

@@ -13,106 +13,114 @@
         }
 
         body { 
-            font-family: 'Courier New', Courier, monospace; 
-            background: var(--dark-bg); 
-            color: var(--neon-green);
-            padding: 20px; 
-            display: flex; 
-            flex-direction: column; 
-            align-items: center; 
-            margin: 0;
-            overflow-x: hidden;
+            font-family: 'Courier New', monospace; background: var(--dark-bg); color: var(--neon-green);
+            padding: 20px; display: flex; flex-direction: column; align-items: center; margin: 0; overflow-x: hidden;
         }
 
         #matrix-bg { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; opacity: 0.15; }
 
-        .box { 
-            background: rgba(26, 26, 26, 0.95); 
-            padding: 25px; 
-            border: 1px solid var(--neon-green);
-            box-shadow: 0 0 20px rgba(0, 255, 65, 0.2);
-            width: 100%; 
-            max-width: 450px; 
-            margin-bottom: 20px;
-            position: relative;
+        /* MENU TAB */
+        .tab-container { display: flex; gap: 5px; margin-bottom: 20px; width: 100%; max-width: 500px; }
+        .tab-btn { 
+            flex: 1; padding: 10px; background: transparent; border: 1px solid var(--neon-green); 
+            color: var(--neon-green); cursor: pointer; font-family: 'Courier New', monospace; font-weight: bold;
         }
+        .tab-btn.active { background: var(--neon-green); color: #000; }
+
+        .box { 
+            background: rgba(26, 26, 26, 0.95); padding: 25px; border: 1px solid var(--neon-green);
+            box-shadow: 0 0 20px rgba(0, 255, 65, 0.2); width: 100%; max-width: 500px; display: none;
+        }
+        .box.active { display: block; animation: fadeIn 0.3s ease; }
 
         .glitch { text-align: center; text-transform: uppercase; margin-bottom: 15px; animation: glitch 1.5s infinite; font-size: 1.1rem; }
         @keyframes glitch { 0% { text-shadow: 1px 0 red, -1px 0 blue; } 100% { text-shadow: 0 0 var(--neon-green); } }
 
-        label { font-size: 11px; color: #008f11; text-transform: uppercase; display: block; margin-top: 10px; }
-        input { 
-            width: 100%; padding: 12px; margin: 5px 0 15px 0; border: 1px solid #004400; 
+        label { font-size: 11px; color: #008f11; display: block; margin-top: 10px; }
+        input, textarea { 
+            width: 100%; padding: 12px; margin: 5px 0 10px 0; border: 1px solid #004400; 
             background: #000; color: var(--neon-green); font-family: 'Courier New', monospace; outline: none; box-sizing: border-box;
         }
+        textarea { height: 150px; font-size: 12px; resize: none; }
 
-        button { 
+        button.main-btn { 
             width: 100%; padding: 12px; border: 1px solid var(--neon-green); background: var(--neon-green);
-            color: #000; font-weight: bold; cursor: pointer; text-transform: uppercase; transition: 0.2s;
+            color: #000; font-weight: bold; cursor: pointer; text-transform: uppercase; margin-top: 10px;
         }
-        button:hover:not(:disabled) { box-shadow: 0 0 20px var(--neon-green); background: #00cc33; }
         button:disabled { opacity: 0.3; cursor: not-allowed; }
 
-        .item-hasil { 
-            border: 1px solid var(--neon-green); background: rgba(0,0,0,0.8);
-            padding: 15px; margin-bottom: 10px; position: relative; animation: fadeIn 0.3s ease-out;
-        }
-
-        .item-hasil.is-done { border-color: var(--alert-red); background: #1a0000; color: #ff5555; }
+        .item-hasil { border: 1px solid var(--neon-green); background: rgba(0,0,0,0.8); padding: 15px; margin-bottom: 10px; position: relative; }
+        .is-done { border-color: var(--alert-red); background: #1a0000; color: #ff5555; }
         .tag-done { position: absolute; top: 5px; right: 10px; font-size: 10px; color: var(--alert-red); font-weight: bold; }
 
-        .copy-container { display: flex; gap: 5px; margin-top: 12px; flex-wrap: wrap; }
-        .btn-copy { background: transparent; border: 1px solid var(--neon-green); color: var(--neon-green); font-size: 9px; padding: 6px; flex: 1; cursor: pointer; }
+        .copy-container { display: flex; gap: 5px; margin-top: 12px; }
+        .btn-small { background: transparent; border: 1px solid var(--neon-green); color: var(--neon-green); font-size: 9px; padding: 6px; flex: 1; cursor: pointer; }
         .btn-mark { background: #660000; color: white; border: 1px solid #ff0000; font-size: 9px; padding: 6px; flex: 1; cursor: pointer; }
-        .status-msg { font-size: 11px; margin-top: 10px; text-align: center; }
 
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
+        #bulk-log { font-size: 10px; height: 100px; overflow-y: auto; background: #000; padding: 10px; border: 1px solid #004400; margin-top: 10px; }
+
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
     </style>
 </head>
 <body>
 
     <canvas id="matrix-bg"></canvas>
 
-    <div class="box">
-        <h3 class="glitch">> SYSTEM_ENTRY</h3>
-        <label>_NAME</label>
-        <input type="text" id="nama" oninput="cekInput()" autocomplete="off">
-        <label>_ADDR</label>
-        <input type="text" id="alamat" oninput="cekInput()" autocomplete="off">
-        <label>_DOB</label>
-        <input type="text" id="tgl_lahir" oninput="cekInput()" autocomplete="off">
-        <button id="btnSimpan" onclick="kirimData()" disabled>EXECUTE_UPLOAD</button>
-        <div id="statusSimpan" class="status-msg"></div>
+    <div class="tab-container">
+        <button class="tab-btn active" onclick="openTab('single')">SINGLE</button>
+        <button class="tab-btn" onclick="openTab('bulk')">BULK</button>
+        <button class="tab-btn" onclick="openTab('search')">SCANNER</button>
     </div>
 
-    <div class="box">
+    <div id="single" class="box active">
+        <h3 class="glitch">> SINGLE_ENTRY</h3>
+        <input type="text" id="nama" placeholder="NAME" oninput="cekInput()">
+        <input type="text" id="alamat" placeholder="ADDR" oninput="cekInput()">
+        <input type="text" id="tgl_lahir" placeholder="DOB" oninput="cekInput()">
+        <button id="btnSimpan" class="main-btn" onclick="kirimData()" disabled>EXECUTE_UPLOAD</button>
+    </div>
+
+    <div id="bulk" class="box">
+        <h3 class="glitch">> BULK_MODULE</h3>
+        <label>_PASTE_DATA_FROM_EXCEL</label>
+        <textarea id="bulkData" placeholder="Nama [TAB] Alamat [TAB] TglLahir"></textarea>
+        <button id="btnBulk" class="main-btn" onclick="kirimBulk()">START_BULK_PROCESS</button>
+        <div id="bulk-log">Menunggu input...</div>
+    </div>
+
+    <div id="search" class="box">
         <h3 class="glitch">> DB_SCANNER</h3>
-        <input type="text" id="cariNama" placeholder="TYPE_NAME_TO_SCAN..." autocomplete="off">
-        <button id="btnCari" onclick="cariData()">SCAN_DATABASE</button>
-        <div id="hasilPencarian"></div>
+        <input type="text" id="cariNama" placeholder="TYPE_TARGET_NAME...">
+        <button class="main-btn" onclick="cariData()">SCAN_DATABASE</button>
+        <div id="hasilPencarian" style="margin-top: 20px;"></div>
     </div>
 
     <script>
-        // URL SCRIPT TERBARU
         const scriptURL = 'https://script.google.com/macros/s/AKfycbxd2HCKHtol2q_uOFGdu0LMSbdaqFuvVXpeMJN07deDA3kxM-jTLtiwg22yAp_tVeM8/exec';
 
-        // Animasi Matrix Background
+        // Navigasi Tab
+        function openTab(tabId) {
+            document.querySelectorAll('.box').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(t => t.classList.remove('active'));
+            document.getElementById(tabId).classList.add('active');
+            event.currentTarget.classList.add('active');
+        }
+
+        // Matrix Bg
         const canvas = document.getElementById('matrix-bg');
         const ctx = canvas.getContext('2d');
         canvas.height = window.innerHeight; canvas.width = window.innerWidth;
         const drops = Array(Math.floor(canvas.width/10)).fill(1);
-        function draw() {
+        setInterval(() => {
             ctx.fillStyle = "rgba(13, 2, 8, 0.05)"; ctx.fillRect(0, 0, canvas.width, canvas.height);
             ctx.fillStyle = "#0F0"; ctx.font = "10px arial";
             drops.forEach((y, i) => {
-                const text = String.fromCharCode(33 + Math.random() * 33);
-                ctx.fillText(text, i * 10, y * 10);
-                if (y * 10 > canvas.height && Math.random() > 0.975) drops[i] = 0;
-                drops[i]++;
+                ctx.fillText(String.fromCharCode(33+Math.random()*33), i*10, y*10);
+                if (y*10 > canvas.height && Math.random() > 0.975) drops[i] = 0; drops[i]++;
             });
-        }
-        setInterval(draw, 35);
+        }, 35);
 
+        // Input Logic
         function cekInput() {
             const n = document.getElementById('nama').value.trim();
             const a = document.getElementById('alamat').value.trim();
@@ -122,64 +130,62 @@
 
         async function kirimData() {
             const btn = document.getElementById('btnSimpan');
-            btn.disabled = true; btn.innerText = "UPLOADING...";
-            try {
-                await fetch(scriptURL, { 
-                    method: 'POST', mode: 'no-cors', 
-                    body: JSON.stringify({ 
-                        nama: document.getElementById('nama').value, 
-                        alamat: document.getElementById('alamat').value, 
-                        tgl_lahir: document.getElementById('tgl_lahir').value 
-                    }) 
-                });
-                alert("PERINTAH TERKIRIM: Cek database untuk memastikan tidak duplikat.");
-                location.reload();
-            } catch (e) { alert("UPLOAD FAILED"); btn.disabled = false; }
+            btn.innerText = "SENDING...";
+            await fetch(scriptURL, { method: 'POST', mode: 'no-cors', body: JSON.stringify({ 
+                nama: document.getElementById('nama').value, alamat: document.getElementById('alamat').value, tgl_lahir: document.getElementById('tgl_lahir').value 
+            })});
+            alert("UPLOADED"); location.reload();
         }
 
-        async function tandaiProses(nama, alamat, btn) {
-            if(!confirm("Kunci status 'PROSESSED' untuk target ini?")) return;
-            btn.innerText = "LOCKING..."; btn.disabled = true;
-            try {
-                await fetch(scriptURL, { 
-                    method: 'POST', mode: 'no-cors', 
-                    body: JSON.stringify({ action: "updateStatus", nama: nama, alamat: alamat }) 
-                });
-                setTimeout(() => { cariData(); }, 1200); 
-            } catch (e) { alert("UPDATE FAILED"); btn.disabled = false; }
+        async function kirimBulk() {
+            const text = document.getElementById('bulkData').value.trim();
+            const log = document.getElementById('bulk-log');
+            if(!text) return;
+            const lines = text.split('\n');
+            log.innerHTML = "";
+            for (let line of lines) {
+                const parts = line.split('\t');
+                if (parts.length < 2) continue;
+                log.innerHTML += `> Uploading: ${parts[0]}...<br>`;
+                await fetch(scriptURL, { method: 'POST', mode: 'no-cors', body: JSON.stringify({ 
+                    nama: parts[0]?.trim(), alamat: parts[1]?.trim(), tgl_lahir: parts[2]?.trim() || "-" 
+                })});
+            }
+            alert("BULK PROCESS COMPLETE"); location.reload();
         }
 
         async function cariData() {
             const input = document.getElementById('cariNama').value;
             const container = document.getElementById('hasilPencarian');
-            if(!input) return;
-            container.innerHTML = "> SCANNING DATABASE...";
-            try {
-                const response = await fetch(`${scriptURL}?nama=${encodeURIComponent(input)}`);
-                const data = await response.json();
-                container.innerHTML = "";
-                data.forEach(item => {
-                    const isDone = item.status === "PROSESSED";
-                    const div = document.createElement('div');
-                    div.className = `item-hasil ${isDone ? 'is-done' : ''}`;
-                    div.innerHTML = `
-                        ${isDone ? '<div class="tag-done">[COMPLETED]</div>' : ''}
-                        <div style="font-size: 13px;">[N]: ${item.nama}<br>[A]: ${item.alamat}<br>[D]: ${item.tgl_lahir}</div>
-                        <div class="copy-container">
-                            <button class="btn-copy" onclick="copyTeks('${item.nama}')">CPY_N</button>
-                            <button class="btn-copy" onclick="copyTeks('${item.alamat}')">CPY_A</button>
-                            <button class="btn-copy" onclick="copyTeks('${item.tgl_lahir}')">CPY_D</button>
-                            ${!isDone ? `<button class="btn-mark" onclick="tandaiProses('${item.nama}', '${item.alamat}', this)">MARK_DONE</button>` : ''}
-                        </div>
-                    `;
-                    container.appendChild(div);
-                });
-            } catch (e) { container.innerHTML = "> SCAN_ERROR"; }
+            container.innerHTML = "> SCANNING...";
+            const response = await fetch(`${scriptURL}?nama=${encodeURIComponent(input)}`);
+            const data = await response.json();
+            container.innerHTML = "";
+            data.forEach(item => {
+                const isDone = item.status === "PROSESSED";
+                const div = document.createElement('div');
+                div.className = `item-hasil ${isDone ? 'is-done' : ''}`;
+                div.innerHTML = `
+                    ${isDone ? '<div class="tag-done">[COMPLETED]</div>' : ''}
+                    <div style="font-size: 13px;">[N]: ${item.nama}<br>[A]: ${item.alamat}<br>[D]: ${item.tgl_lahir}</div>
+                    <div class="copy-container">
+                        <button class="btn-small" onclick="copy('${item.nama}')">CPY_N</button>
+                        <button class="btn-small" onclick="copy('${item.alamat}')">CPY_A</button>
+                        <button class="btn-small" onclick="copy('${item.tgl_lahir}')">CPY_D</button>
+                        ${!isDone ? `<button class="btn-mark" onclick="mark('${item.nama}', '${item.alamat}', this)">MARK</button>` : ''}
+                    </div>
+                `;
+                container.appendChild(div);
+            });
         }
 
-        function copyTeks(t) { 
-            navigator.clipboard.writeText(t);
+        async function mark(n, a, b) {
+            b.innerText = "...";
+            await fetch(scriptURL, { method: 'POST', mode: 'no-cors', body: JSON.stringify({ action: "updateStatus", nama: n, alamat: a }) });
+            cariData();
         }
+
+        function copy(t) { navigator.clipboard.writeText(t); }
     </script>
 </body>
 </html>

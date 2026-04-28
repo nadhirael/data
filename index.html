@@ -5,28 +5,19 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sistem Pendataan Lengkap</title>
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f0f2f5; padding: 20px; display: flex; flex-direction: column; align-items: center; }
+        body { font-family: 'Segoe UI', sans-serif; background: #f0f2f5; padding: 20px; display: flex; flex-direction: column; align-items: center; }
         .box { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); width: 100%; max-width: 400px; margin-bottom: 20px; }
-        h3 { margin-top: 0; color: #1c1e21; text-align: center; font-size: 20px; border-bottom: 2px solid #eee; padding-bottom: 10px; }
+        h3 { margin-top: 0; color: #1c1e21; text-align: center; border-bottom: 2px solid #eee; padding-bottom: 10px; }
         label { font-size: 13px; font-weight: bold; color: #606770; display: block; margin-top: 10px; }
         input { width: 100%; padding: 12px; margin: 5px 0 15px 0; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; font-size: 15px; outline: none; }
-        input:focus { border-color: #007bff; }
-        
         button { width: 100%; padding: 12px; border: none; border-radius: 8px; cursor: pointer; color: white; font-weight: bold; font-size: 15px; transition: 0.3s; }
         .btn-save { background: #28a745; }
-        .btn-save:hover:not(:disabled) { background: #218838; }
         .btn-save:disabled { background: #cccccc; cursor: not-allowed; color: #666; }
-        
         .btn-search { background: #007bff; }
-        .btn-search:hover { background: #0056b3; }
-        
-        #hasilPencarian { margin-top: 20px; width: 100%; }
         .item-hasil { background: #ffffff; padding: 15px; margin-bottom: 12px; border-left: 5px solid #007bff; border-radius: 6px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
         .copy-container { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 15px; }
         .btn-copy-small { background: #6c757d; font-size: 11px; padding: 8px; flex: 1; min-width: 90px; border-radius: 6px; border: none; color: white; cursor: pointer; }
-        .btn-copy-small:hover { background: #495057; }
-        
-        .status-msg { text-align: center; font-size: 13px; margin-top: 10px; font-weight: 500; }
+        .status-msg { text-align: center; font-size: 13px; margin-top: 10px; }
     </style>
 </head>
 <body>
@@ -40,7 +31,7 @@
         <input type="text" id="alamat" placeholder="Masukkan alamat..." oninput="cekInput()">
         
         <label>Tanggal Lahir</label>
-        <input type="date" id="tgl_lahir" oninput="cekInput()">
+        <input type="text" id="tgl_lahir" placeholder="Contoh: 12-05-1995 atau bebas..." oninput="cekInput()">
         
         <button class="btn-save" id="btnSimpan" onclick="kirimData()" disabled>Simpan Data</button>
         <div id="statusSimpan" class="status-msg"></div>
@@ -56,17 +47,16 @@
     <script>
         const scriptURL = 'https://script.google.com/macros/s/AKfycbwmR4-sHAs74CeymWSMTb4EEh0YrXfbPQa--mx9yonZ8PyH8onbJeGfy_iNww4c759s/exec';
 
-        // Fungsi cek agar tombol simpan aktif jika semua kolom terisi
         function cekInput() {
             const nama = document.getElementById('nama').value.trim();
             const alamat = document.getElementById('alamat').value.trim();
-            const tgl = document.getElementById('tgl_lahir').value;
+            const tgl = document.getElementById('tgl_lahir').value.trim();
             const btn = document.getElementById('btnSimpan');
             
+            // Tombol hanya aktif kalau ketiga kolom ada isinya
             btn.disabled = (nama === "" || alamat === "" || tgl === "");
         }
 
-        // Fungsi Kirim Data
         async function kirimData() {
             const nama = document.getElementById('nama').value;
             const alamat = document.getElementById('alamat').value;
@@ -76,7 +66,6 @@
 
             btn.disabled = true;
             btn.innerText = "Mengirim...";
-            status.innerText = "Proses simpan...";
 
             try {
                 await fetch(scriptURL, { 
@@ -86,7 +75,7 @@
                 });
                 
                 status.style.color = "#28a745";
-                status.innerText = "✓ Data berhasil disimpan!";
+                status.innerText = "✓ Berhasil disimpan!";
                 document.getElementById('nama').value = "";
                 document.getElementById('alamat').value = "";
                 document.getElementById('tgl_lahir').value = "";
@@ -100,15 +89,13 @@
             }
         }
 
-        // Fungsi Cari Data
         async function cariData() {
             const input = document.getElementById('cariNama').value;
             const container = document.getElementById('hasilPencarian');
             const btn = document.getElementById('btnCari');
 
-            if(!input) return alert("Ketik nama untuk mencari!");
-
-            container.innerHTML = "<p style='text-align:center;'>Mencari...</p>";
+            if(!input) return alert("Ketik nama!");
+            container.innerHTML = "Mencari...";
             btn.disabled = true;
 
             try {
@@ -116,42 +103,38 @@
                 const data = await response.json();
 
                 if (data.length === 0) {
-                    container.innerHTML = "<p style='text-align:center; color:#dc3545;'>Data tidak ditemukan.</p>";
+                    container.innerHTML = "<p style='text-align:center;'>Data tidak ditemukan.</p>";
                 } else {
                     container.innerHTML = "";
                     data.forEach(item => {
                         const div = document.createElement('div');
                         div.className = 'item-hasil';
                         
-                        // Format tanggal lahir ke format Indo (dd/mm/yyyy)
-                        const tglFormated = item.tgl_lahir ? item.tgl_lahir.split('-').reverse().join('/') : '-';
-
                         div.innerHTML = `
                             <div style="font-size: 14px;">
                                 <strong>Nama:</strong> ${item.nama}<br>
                                 <strong>Alamat:</strong> ${item.alamat}<br>
-                                <strong>Lahir:</strong> ${tglFormated}
+                                <strong>Lahir:</strong> ${item.tgl_lahir}
                             </div>
                             <div class="copy-container">
                                 <button class="btn-copy-small" onclick="copyTeks('${item.nama}', 'Nama')">Copy Nama</button>
                                 <button class="btn-copy-small" onclick="copyTeks('${item.alamat}', 'Alamat')">Copy Alamat</button>
-                                <button class="btn-copy-small" onclick="copyTeks('${tglFormated}', 'Tgl Lahir')">Copy Lahir</button>
+                                <button class="btn-copy-small" onclick="copyTeks('${item.tgl_lahir}', 'Lahir')">Copy Lahir</button>
                             </div>
                         `;
                         container.appendChild(div);
                     });
                 }
             } catch (err) {
-                container.innerHTML = "<p style='text-align:center; color:#dc3545;'>Gagal mengambil data.</p>";
+                container.innerHTML = "Gagal mengambil data.";
             } finally {
                 btn.disabled = false;
             }
         }
 
-        // Fungsi Salin
         function copyTeks(teks, tipe) {
             navigator.clipboard.writeText(teks).then(() => {
-                alert(tipe + " berhasil disalin!");
+                alert(tipe + " disalin!");
             });
         }
     </script>

@@ -3,81 +3,110 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Form Input Data</title>
+    <title>Sistem Data Sederhana</title>
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; display: flex; justify-content: center; padding-top: 50px; background-color: #f0f2f5; }
-        .container { background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); width: 100%; max-width: 350px; }
-        h3 { text-align: center; color: #333; margin-bottom: 20px; }
-        label { font-size: 14px; color: #666; }
-        input { width: 100%; padding: 12px; margin: 8px 0 20px 0; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; font-size: 16px; }
-        button { width: 100%; padding: 12px; background-color: #007bff; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 16px; font-weight: bold; }
-        button:hover { background-color: #0056b3; }
-        #status { text-align: center; margin-top: 15px; font-size: 14px; }
+        body { font-family: 'Segoe UI', sans-serif; background: #f4f7f6; padding: 20px; display: flex; flex-direction: column; align-items: center; }
+        .box { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); width: 100%; max-width: 400px; margin-bottom: 20px; }
+        h3 { margin-top: 0; color: #333; text-align: center; }
+        input { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; font-size: 16px; }
+        button { width: 100%; padding: 12px; border: none; border-radius: 6px; cursor: pointer; color: white; font-weight: bold; font-size: 16px; transition: 0.3s; }
+        .btn-save { background: #28a745; margin-bottom: 10px; }
+        .btn-save:hover { background: #218838; }
+        .btn-search { background: #007bff; }
+        .btn-search:hover { background: #0056b3; }
+        #hasilPencarian { margin-top: 15px; font-size: 14px; border-top: 1px solid #eee; padding-top: 10px; }
+        .item-hasil { background: #f8f9fa; padding: 12px; margin-bottom: 8px; border-left: 4px solid #007bff; border-radius: 4px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+        .status-msg { text-align: center; font-size: 13px; margin-top: 5px; }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <h3>Input Data</h3>
-    
-    <label>Nama Lengkap</label>
-    <input type="text" id="nama" placeholder="Contoh: Budi Santoso">
-    
-    <label>Alamat</label>
-    <input type="text" id="alamat" placeholder="Contoh: Jakarta">
-    
-    <button type="button" id="btnSimpan" onclick="kirimData()">Simpan ke Spreadsheet</button>
-    
-    <div id="status"></div>
-</div>
+    <div class="box">
+        <h3>Input Data Baru</h3>
+        <input type="text" id="nama" placeholder="Ketik Nama...">
+        <input type="text" id="alamat" placeholder="Ketik Alamat...">
+        <button class="btn-save" id="btnSimpan" onclick="kirimData()">Simpan ke Spreadsheet</button>
+        <div id="statusSimpan" class="status-msg"></div>
+    </div>
 
-<script>
-    async function kirimData() {
-        const btn = document.getElementById('btnSimpan');
-        const statusDiv = document.getElementById('status');
-        const scriptURL = 'https://script.google.com/macros/s/AKfycbxlqshqZ6qNtUdmbgH9WcVr1AtXbe9etXn2MxylSkbaKLh__0U9T5w8l29bhndoRaU5/exec';
-        
-        const nama = document.getElementById('nama').value;
-        const alamat = document.getElementById('alamat').value;
+    <div class="box">
+        <h3>Cari Data</h3>
+        <input type="text" id="cariNama" placeholder="Masukkan nama yang dicari...">
+        <button class="btn-search" id="btnCari" onclick="cariData()">Cari Sekarang</button>
+        <div id="hasilPencarian"></div>
+    </div>
 
-        if (!nama || !alamat) {
-            alert("Harap isi semua kolom!");
-            return;
+    <script>
+        // URL Web App Google Script kamu yang terbaru
+        const scriptURL = 'https://script.google.com/macros/s/AKfycbwpQ8Vs0nn8p82f6D7DJPyeVPMajiiHwk4xHomA3kyS-Z5o79q0uOu5--x0M36_UROl/exec';
+
+        // FUNGSI SIMPAN DATA
+        async function kirimData() {
+            const nama = document.getElementById('nama').value;
+            const alamat = document.getElementById('alamat').value;
+            const btn = document.getElementById('btnSimpan');
+            const status = document.getElementById('statusSimpan');
+
+            if(!nama || !alamat) return alert("Harap isi Nama dan Alamat!");
+
+            btn.disabled = true;
+            btn.innerText = "Mengirim...";
+            status.innerText = "Sedang menyimpan...";
+
+            try {
+                await fetch(scriptURL, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    body: JSON.stringify({ nama: nama, alamat: alamat })
+                });
+                
+                status.style.color = "green";
+                status.innerText = "Berhasil disimpan ke Sheets!";
+                document.getElementById('nama').value = "";
+                document.getElementById('alamat').value = "";
+            } catch (err) {
+                status.style.color = "red";
+                status.innerText = "Gagal menyimpan data.";
+            } finally {
+                btn.disabled = false;
+                btn.innerText = "Simpan ke Spreadsheet";
+            }
         }
 
-        // Tampilan saat loading
-        btn.disabled = true;
-        btn.innerText = "Mengirim...";
-        statusDiv.innerText = "Sedang memproses...";
-        statusDiv.style.color = "blue";
+        // FUNGSI CARI DATA
+        async function cariData() {
+            const input = document.getElementById('cariNama').value;
+            const container = document.getElementById('hasilPencarian');
+            const btn = document.getElementById('btnCari');
 
-        try {
-            // Mengirim data menggunakan fetch (metode POST)
-            // Kita gunakan mode 'no-cors' agar lebih lancar dengan Google Script
-            await fetch(scriptURL, {
-                method: 'POST',
-                mode: 'no-cors',
-                cache: 'no-cache',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ nama: nama, alamat: alamat })
-            });
+            if(!input) return alert("Ketik nama untuk mencari!");
 
-            // Karena no-cors, kita anggap sukses jika tidak ada error
-            statusDiv.innerText = "Data berhasil dikirim!";
-            statusDiv.style.color = "green";
-            document.getElementById('nama').value = "";
-            document.getElementById('alamat').value = "";
-            
-        } catch (error) {
-            console.error('Error!', error.message);
-            statusDiv.innerText = "Terjadi kesalahan.";
-            statusDiv.style.color = "red";
-        } finally {
-            btn.disabled = false;
-            btn.innerText = "Simpan ke Spreadsheet";
+            container.innerHTML = "<p style='text-align:center;'>Mencari...</p>";
+            btn.disabled = true;
+
+            try {
+                // Memanggil doGet di Apps Script
+                const response = await fetch(`${scriptURL}?nama=${encodeURIComponent(input)}`);
+                const data = await response.json();
+
+                if (data.length === 0) {
+                    container.innerHTML = "<p style='text-align:center; color:red;'>Data tidak ditemukan.</p>";
+                } else {
+                    container.innerHTML = "";
+                    data.forEach(item => {
+                        const div = document.createElement('div');
+                        div.className = 'item-hasil';
+                        div.innerHTML = `<strong>Nama:</strong> ${item.nama}<br><strong>Alamat:</strong> ${item.alamat}`;
+                        container.appendChild(div);
+                    });
+                }
+            } catch (err) {
+                container.innerHTML = "<p style='text-align:center; color:red;'>Gagal mengambil data.</p>";
+                console.error(err);
+            } finally {
+                btn.disabled = false;
+            }
         }
-    }
-</script>
-
+    </script>
 </body>
 </html>

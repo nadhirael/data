@@ -9,6 +9,7 @@
             --neon-green: #00ff41;
             --dark-bg: #0d0208;
             --terminal-gray: #1a1a1a;
+            --alert-red: #ff0000;
         }
 
         body { 
@@ -19,31 +20,14 @@
             display: flex; 
             flex-direction: column; 
             align-items: center; 
-            overflow-x: hidden;
             margin: 0;
+            overflow-x: hidden;
         }
 
-        /* MATRIX BACKGROUND */
-        #matrix-bg {
-            position: fixed;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
-            z-index: -1;
-            opacity: 0.15;
-        }
-
-        .scanline {
-            width: 100%; height: 2px;
-            background: rgba(0, 255, 65, 0.1);
-            position: fixed;
-            top: 0; z-index: 10;
-            animation: scan 4s linear infinite;
-            pointer-events: none;
-        }
-        @keyframes scan { from { top: 0; } to { top: 100%; } }
+        #matrix-bg { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; opacity: 0.15; }
 
         .box { 
-            background: rgba(26, 26, 26, 0.9); 
+            background: rgba(26, 26, 26, 0.95); 
             padding: 25px; 
             border: 1px solid var(--neon-green);
             box-shadow: 0 0 20px rgba(0, 255, 65, 0.2);
@@ -53,134 +37,82 @@
             position: relative;
         }
 
-        .glitch {
-            font-size: 1.2rem;
-            text-align: center;
-            text-transform: uppercase;
-            position: relative;
-            margin-bottom: 15px;
-            animation: glitch 1.5s infinite;
-        }
-
-        @keyframes glitch {
-            0% { text-shadow: 1px 0 red, -1px 0 blue; }
-            20% { text-shadow: -1px 0 red, 1px 0 blue; }
-            40% { text-shadow: 1px -1px red, -1px 1px blue; }
-            100% { text-shadow: 0 0 var(--neon-green); }
-        }
+        .glitch { text-align: center; text-transform: uppercase; margin-bottom: 15px; animation: glitch 1.5s infinite; font-size: 1.1rem; }
+        @keyframes glitch { 0% { text-shadow: 1px 0 red, -1px 0 blue; } 100% { text-shadow: 0 0 var(--neon-green); } }
 
         label { font-size: 11px; color: #008f11; text-transform: uppercase; display: block; margin-top: 10px; }
-
         input { 
-            width: 100%; 
-            padding: 12px; 
-            margin: 5px 0 15px 0; 
-            border: 1px solid #004400; 
-            background: #000;
-            color: var(--neon-green);
-            font-family: 'Courier New', monospace;
-            outline: none;
-            box-sizing: border-box;
+            width: 100%; padding: 12px; margin: 5px 0 15px 0; border: 1px solid #004400; 
+            background: #000; color: var(--neon-green); font-family: 'Courier New', monospace; outline: none; box-sizing: border-box;
         }
 
         button { 
-            width: 100%; 
-            padding: 12px; 
-            border: 1px solid var(--neon-green);
-            background: var(--neon-green);
-            color: #000;
-            font-weight: bold; 
-            cursor: pointer;
-            text-transform: uppercase;
-            transition: all 0.2s;
+            width: 100%; padding: 12px; border: 1px solid var(--neon-green); background: var(--neon-green);
+            color: #000; font-weight: bold; cursor: pointer; text-transform: uppercase; transition: 0.2s;
         }
-
         button:hover:not(:disabled) { box-shadow: 0 0 20px var(--neon-green); background: #00cc33; }
-        button:disabled { filter: grayscale(1); opacity: 0.3; cursor: not-allowed; }
-
-        #hasilPencarian { margin-top: 20px; width: 100%; }
+        button:disabled { opacity: 0.3; cursor: not-allowed; }
 
         .item-hasil { 
-            border: 1px solid var(--neon-green); 
-            background: rgba(0,0,0,0.5);
-            padding: 15px; 
-            margin-bottom: 10px; 
-            animation: fadeIn 0.4s ease-out;
+            border: 1px solid var(--neon-green); background: rgba(0,0,0,0.8);
+            padding: 15px; margin-bottom: 10px; position: relative; animation: fadeIn 0.3s ease-out;
         }
 
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
+        /* Style untuk data yang sudah diproses */
+        .item-hasil.is-done { border-color: var(--alert-red); background: #1a0000; color: #ff5555; }
+        .tag-done { position: absolute; top: 5px; right: 10px; font-size: 10px; color: var(--alert-red); font-weight: bold; }
 
         .copy-container { display: flex; gap: 5px; margin-top: 12px; flex-wrap: wrap; }
-        
-        .btn-copy-small { 
-            background: transparent; 
-            border: 1px solid var(--neon-green);
-            color: var(--neon-green);
-            font-size: 9px; 
-            padding: 6px; 
-            flex: 1; 
-            min-width: 80px;
-        }
-        
-        .btn-copy-small:hover { background: rgba(0, 255, 65, 0.2); }
+        .btn-copy { background: transparent; border: 1px solid var(--neon-green); color: var(--neon-green); font-size: 9px; padding: 6px; flex: 1; cursor: pointer; }
+        .btn-mark { background: #660000; color: white; border: 1px solid #ff0000; font-size: 9px; padding: 6px; flex: 1; cursor: pointer; }
+        .status-msg { font-size: 11px; margin-top: 10px; text-align: center; }
 
-        .status-msg { font-size: 12px; margin-top: 10px; text-align: center; min-height: 15px; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
 <body>
 
     <canvas id="matrix-bg"></canvas>
-    <div class="scanline"></div>
 
     <div class="box">
-        <h3 class="glitch">> SYSTEM_INPUT</h3>
-        <label>_NAME_ENTRY</label>
+        <h3 class="glitch">> SYSTEM_ENTRY</h3>
+        <label>_NAME</label>
         <input type="text" id="nama" oninput="cekInput()" autocomplete="off">
-        <label>_ADDR_LOC</label>
+        <label>_ADDR</label>
         <input type="text" id="alamat" oninput="cekInput()" autocomplete="off">
-        <label>_DOB_DATA</label>
+        <label>_DOB</label>
         <input type="text" id="tgl_lahir" oninput="cekInput()" autocomplete="off">
-        
-        <button id="btnSimpan" onclick="kirimData()" disabled>EXECUTE_SEND</button>
+        <button id="btnSimpan" onclick="kirimData()" disabled>EXECUTE_UPLOAD</button>
         <div id="statusSimpan" class="status-msg"></div>
     </div>
 
     <div class="box">
-        <h3 class="glitch">> DATABASE_QUERY</h3>
-        <input type="text" id="cariNama" placeholder="TYPE_TARGET_NAME..." autocomplete="off">
+        <h3 class="glitch">> DB_SCANNER</h3>
+        <input type="text" id="cariNama" placeholder="TYPE_NAME_TO_SCAN..." autocomplete="off">
         <button id="btnCari" onclick="cariData()">SCAN_DATABASE</button>
         <div id="hasilPencarian"></div>
     </div>
 
     <script>
-        const scriptURL = 'https://script.google.com/macros/s/AKfycbxYNxZElo8c3IM7uB-9BG_ZEL5FCROzJkS6grJLHohAdLk-T2VT3s4dvYbsPqFaJJLM/exec';
+        const scriptURL = 'https://script.google.com/macros/s/AKfycbw9MK6ZoBUJy56VPghRsr86aZwJiDUxRBYMI7GL27_voWs4aWOHRftipt9SbnIv6KkA/exec';
 
-        // MATRIX BACKGROUND ANIMATION
+        // Animasi Matrix Background
         const canvas = document.getElementById('matrix-bg');
         const ctx = canvas.getContext('2d');
-        canvas.height = window.innerHeight;
-        canvas.width = window.innerWidth;
-        const characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#$%^&*";
-        const fontSize = 10;
-        const columns = canvas.width / fontSize;
-        const drops = [];
-        for (let x = 0; x < columns; x++) drops[x] = 1;
-
-        function drawMatrix() {
-            ctx.fillStyle = "rgba(13, 2, 8, 0.05)";
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-            ctx.fillStyle = "#0F0";
-            ctx.font = fontSize + "px arial";
-            for (let i = 0; i < drops.length; i++) {
-                const text = characters.charAt(Math.floor(Math.random() * characters.length));
-                ctx.fillText(text, i * fontSize, drops[i] * fontSize);
-                if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) drops[i] = 0;
+        canvas.height = window.innerHeight; canvas.width = window.innerWidth;
+        const drops = Array(Math.floor(canvas.width/10)).fill(1);
+        function draw() {
+            ctx.fillStyle = "rgba(13, 2, 8, 0.05)"; ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = "#0F0"; ctx.font = "10px arial";
+            drops.forEach((y, i) => {
+                const text = String.fromCharCode(33 + Math.random() * 33);
+                ctx.fillText(text, i * 10, y * 10);
+                if (y * 10 > canvas.height && Math.random() > 0.975) drops[i] = 0;
                 drops[i]++;
-            }
+            });
         }
-        setInterval(drawMatrix, 35);
+        setInterval(draw, 35);
 
-        // SYSTEM LOGIC
         function cekInput() {
             const n = document.getElementById('nama').value.trim();
             const a = document.getElementById('alamat').value.trim();
@@ -190,79 +122,64 @@
 
         async function kirimData() {
             const btn = document.getElementById('btnSimpan');
-            const status = document.getElementById('statusSimpan');
-            btn.disabled = true;
-            btn.innerText = "SENDING...";
-            
+            btn.disabled = true; btn.innerText = "UPLOADING...";
             try {
                 await fetch(scriptURL, { 
-                    method: 'POST', 
-                    mode: 'no-cors', 
+                    method: 'POST', mode: 'no-cors', 
                     body: JSON.stringify({ 
                         nama: document.getElementById('nama').value, 
                         alamat: document.getElementById('alamat').value, 
                         tgl_lahir: document.getElementById('tgl_lahir').value 
                     }) 
                 });
-                status.innerText = "> ACCESS GRANTED: DATA SAVED";
-                document.getElementById('nama').value = "";
-                document.getElementById('alamat').value = "";
-                document.getElementById('tgl_lahir').value = "";
-                cekInput();
-            } catch (err) {
-                status.innerText = "> ERROR: CONNECTION LOST";
-            } finally {
-                btn.innerText = "EXECUTE_SEND";
-            }
+                alert("DATA SAVED TO DATABASE");
+                location.reload();
+            } catch (e) { alert("UPLOAD FAILED"); btn.disabled = false; }
+        }
+
+        async function tandaiProses(nama, alamat, btn) {
+            if(!confirm("Kunci status 'PROSESSED' untuk target ini?")) return;
+            btn.innerText = "LOCKING..."; btn.disabled = true;
+            try {
+                await fetch(scriptURL, { 
+                    method: 'POST', mode: 'no-cors', 
+                    body: JSON.stringify({ action: "updateStatus", nama: nama, alamat: alamat }) 
+                });
+                setTimeout(() => { cariData(); }, 1000); // Refresh pencarian
+            } catch (e) { alert("UPDATE FAILED"); btn.disabled = false; }
         }
 
         async function cariData() {
             const input = document.getElementById('cariNama').value;
             const container = document.getElementById('hasilPencarian');
-            const btn = document.getElementById('btnCari');
-            
-            if(!input) return alert("ENTRY_REQUIRED");
-            
+            if(!input) return;
             container.innerHTML = "> SCANNING DATABASE...";
-            btn.disabled = true;
-
             try {
                 const response = await fetch(`${scriptURL}?nama=${encodeURIComponent(input)}`);
                 const data = await response.json();
                 container.innerHTML = "";
-                
-                if (data.length === 0) {
-                    container.innerHTML = "> NO MATCH FOUND";
-                } else {
-                    data.forEach(item => {
-                        const div = document.createElement('div');
-                        div.className = 'item-hasil';
-                        div.innerHTML = `
-                            <div style="font-size: 13px;">
-                                [NAME]: ${item.nama}<br>
-                                [ADDR]: ${item.alamat}<br>
-                                [DOB] : ${item.tgl_lahir}
-                            </div>
-                            <div class="copy-container">
-                                <button class="btn-copy-small" onclick="copyTeks('${item.nama}', 'Nama')">CPY_NAME</button>
-                                <button class="btn-copy-small" onclick="copyTeks('${item.alamat}', 'Addr')">CPY_ADDR</button>
-                                <button class="btn-copy-small" onclick="copyTeks('${item.tgl_lahir}', 'DOB')">CPY_DOB</button>
-                            </div>
-                        `;
-                        container.appendChild(div);
-                    });
-                }
-            } catch (err) { 
-                container.innerHTML = "> CRITICAL_ERROR: UNABLE TO FETCH"; 
-            } finally {
-                btn.disabled = false;
-            }
+                data.forEach(item => {
+                    const isDone = item.status === "PROSESSED";
+                    const div = document.createElement('div');
+                    div.className = `item-hasil ${isDone ? 'is-done' : ''}`;
+                    div.innerHTML = `
+                        ${isDone ? '<div class="tag-done">[COMPLETED]</div>' : ''}
+                        <div style="font-size: 13px;">[N]: ${item.nama}<br>[A]: ${item.alamat}<br>[D]: ${item.tgl_lahir}</div>
+                        <div class="copy-container">
+                            <button class="btn-copy" onclick="copyTeks('${item.nama}')">CPY_N</button>
+                            <button class="btn-copy" onclick="copyTeks('${item.alamat}')">CPY_A</button>
+                            <button class="btn-copy" onclick="copyTeks('${item.tgl_lahir}')">CPY_D</button>
+                            ${!isDone ? `<button class="btn-mark" onclick="tandaiProses('${item.nama}', '${item.alamat}', this)">MARK_DONE</button>` : ''}
+                        </div>
+                    `;
+                    container.appendChild(div);
+                });
+            } catch (e) { container.innerHTML = "> SCAN_ERROR"; }
         }
 
-        function copyTeks(teks, tipe) {
-            navigator.clipboard.writeText(teks).then(() => {
-                console.log(tipe + " COPIED");
-            });
+        function copyTeks(t) { 
+            navigator.clipboard.writeText(t);
+            console.log("Copied: " + t);
         }
     </script>
 </body>

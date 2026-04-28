@@ -58,7 +58,6 @@
             padding: 15px; margin-bottom: 10px; position: relative; animation: fadeIn 0.3s ease-out;
         }
 
-        /* Style untuk data yang sudah diproses */
         .item-hasil.is-done { border-color: var(--alert-red); background: #1a0000; color: #ff5555; }
         .tag-done { position: absolute; top: 5px; right: 10px; font-size: 10px; color: var(--alert-red); font-weight: bold; }
 
@@ -94,7 +93,8 @@
     </div>
 
     <script>
-        const scriptURL = 'https://script.google.com/macros/s/AKfycbw9MK6ZoBUJy56VPghRsr86aZwJiDUxRBYMI7GL27_voWs4aWOHRftipt9SbnIv6KkA/exec';
+        // URL SCRIPT TERBARU
+        const scriptURL = 'https://script.google.com/macros/s/AKfycbxd2HCKHtol2q_uOFGdu0LMSbdaqFuvVXpeMJN07deDA3kxM-jTLtiwg22yAp_tVeM8/exec';
 
         // Animasi Matrix Background
         const canvas = document.getElementById('matrix-bg');
@@ -132,7 +132,7 @@
                         tgl_lahir: document.getElementById('tgl_lahir').value 
                     }) 
                 });
-                alert("DATA SAVED TO DATABASE");
+                alert("PERINTAH TERKIRIM: Cek database untuk memastikan tidak duplikat.");
                 location.reload();
             } catch (e) { alert("UPLOAD FAILED"); btn.disabled = false; }
         }
@@ -145,7 +145,7 @@
                     method: 'POST', mode: 'no-cors', 
                     body: JSON.stringify({ action: "updateStatus", nama: nama, alamat: alamat }) 
                 });
-                setTimeout(() => { cariData(); }, 1000); // Refresh pencarian
+                setTimeout(() => { cariData(); }, 1200); 
             } catch (e) { alert("UPDATE FAILED"); btn.disabled = false; }
         }
 
@@ -179,7 +179,6 @@
 
         function copyTeks(t) { 
             navigator.clipboard.writeText(t);
-            console.log("Copied: " + t);
         }
     </script>
 </body>

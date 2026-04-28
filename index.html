@@ -3,14 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistem Pendataan Lengkap</title>
+    <title>Sistem Data Pendataan</title>
     <style>
         body { font-family: 'Segoe UI', sans-serif; background: #f0f2f5; padding: 20px; display: flex; flex-direction: column; align-items: center; }
         .box { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); width: 100%; max-width: 400px; margin-bottom: 20px; }
         h3 { margin-top: 0; color: #1c1e21; text-align: center; border-bottom: 2px solid #eee; padding-bottom: 10px; }
         label { font-size: 13px; font-weight: bold; color: #606770; display: block; margin-top: 10px; }
         input { width: 100%; padding: 12px; margin: 5px 0 15px 0; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; font-size: 15px; outline: none; }
-        button { width: 100%; padding: 12px; border: none; border-radius: 8px; cursor: pointer; color: white; font-weight: bold; font-size: 15px; transition: 0.3s; }
+        button { width: 100%; padding: 12px; border: none; border-radius: 8px; cursor: pointer; color: white; font-weight: bold; transition: 0.3s; }
         .btn-save { background: #28a745; }
         .btn-save:disabled { background: #cccccc; cursor: not-allowed; color: #666; }
         .btn-search { background: #007bff; }
@@ -26,12 +26,10 @@
         <h3>Input Data Baru</h3>
         <label>Nama Lengkap</label>
         <input type="text" id="nama" placeholder="Masukkan nama..." oninput="cekInput()">
-        
         <label>Alamat</label>
         <input type="text" id="alamat" placeholder="Masukkan alamat..." oninput="cekInput()">
-        
         <label>Tanggal Lahir</label>
-        <input type="text" id="tgl_lahir" placeholder="Contoh: 12-05-1995 atau bebas..." oninput="cekInput()">
+        <input type="text" id="tgl_lahir" placeholder="Contoh: 01/01/2001 atau copas bebas" oninput="cekInput()">
         
         <button class="btn-save" id="btnSimpan" onclick="kirimData()" disabled>Simpan Data</button>
         <div id="statusSimpan" class="status-msg"></div>
@@ -45,15 +43,13 @@
     </div>
 
     <script>
-        const scriptURL = 'https://script.google.com/macros/s/AKfycbwmR4-sHAs74CeymWSMTb4EEh0YrXfbPQa--mx9yonZ8PyH8onbJeGfy_iNww4c759s/exec';
+        const scriptURL = 'https://script.google.com/macros/s/AKfycbyacAhPkB9EB9tZiolL2QO5o6n4_jD5hqH0iHM1WzzyAolsE17NfMAis0tZIzVHWI9s/exec';
 
         function cekInput() {
             const nama = document.getElementById('nama').value.trim();
             const alamat = document.getElementById('alamat').value.trim();
             const tgl = document.getElementById('tgl_lahir').value.trim();
             const btn = document.getElementById('btnSimpan');
-            
-            // Tombol hanya aktif kalau ketiga kolom ada isinya
             btn.disabled = (nama === "" || alamat === "" || tgl === "");
         }
 
@@ -73,7 +69,6 @@
                     mode: 'no-cors', 
                     body: JSON.stringify({ nama: nama, alamat: alamat, tgl_lahir: tgl }) 
                 });
-                
                 status.style.color = "#28a745";
                 status.innerText = "✓ Berhasil disimpan!";
                 document.getElementById('nama').value = "";
@@ -81,12 +76,26 @@
                 document.getElementById('tgl_lahir').value = "";
                 cekInput();
             } catch (err) {
-                status.style.color = "#dc3545";
                 status.innerText = "Gagal menyimpan.";
                 btn.disabled = false;
             } finally {
                 btn.innerText = "Simpan Data";
             }
+        }
+
+        // Fungsi Memaksa Format Tanggal ke Hari/Bulan/Tahun
+        function formatTanggalIndo(teks) {
+            if (!teks) return "-";
+            const date = new Date(teks);
+            
+            // Jika teks yang di-copas bukan format tanggal standar, kembalikan teks aslinya
+            if (isNaN(date.getTime()) || teks.length < 5) return teks;
+
+            const hari = String(date.getDate()).padStart(2, '0');
+            const bulan = String(date.getMonth() + 1).padStart(2, '0');
+            const tahun = date.getFullYear();
+
+            return `${hari}/${bulan}/${tahun}`;
         }
 
         async function cariData() {
@@ -103,40 +112,8 @@
                 const data = await response.json();
 
                 if (data.length === 0) {
-                    container.innerHTML = "<p style='text-align:center;'>Data tidak ditemukan.</p>";
+                    container.innerHTML = "Data tidak ditemukan.";
                 } else {
                     container.innerHTML = "";
                     data.forEach(item => {
-                        const div = document.createElement('div');
-                        div.className = 'item-hasil';
-                        
-                        div.innerHTML = `
-                            <div style="font-size: 14px;">
-                                <strong>Nama:</strong> ${item.nama}<br>
-                                <strong>Alamat:</strong> ${item.alamat}<br>
-                                <strong>Lahir:</strong> ${item.tgl_lahir}
-                            </div>
-                            <div class="copy-container">
-                                <button class="btn-copy-small" onclick="copyTeks('${item.nama}', 'Nama')">Copy Nama</button>
-                                <button class="btn-copy-small" onclick="copyTeks('${item.alamat}', 'Alamat')">Copy Alamat</button>
-                                <button class="btn-copy-small" onclick="copyTeks('${item.tgl_lahir}', 'Lahir')">Copy Lahir</button>
-                            </div>
-                        `;
-                        container.appendChild(div);
-                    });
-                }
-            } catch (err) {
-                container.innerHTML = "Gagal mengambil data.";
-            } finally {
-                btn.disabled = false;
-            }
-        }
-
-        function copyTeks(teks, tipe) {
-            navigator.clipboard.writeText(teks).then(() => {
-                alert(tipe + " disalin!");
-            });
-        }
-    </script>
-</body>
-</html>
+                        const div = document

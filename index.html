@@ -43,7 +43,7 @@
     </div>
 
     <script>
-        const scriptURL = 'https://script.google.com/macros/s/AKfycbyacAhPkB9EB9tZiolL2QO5o6n4_jD5hqH0iHM1WzzyAolsE17NfMAis0tZIzVHWI9s/exec';
+        const scriptURL = 'https://script.google.com/macros/s/AKfycbxYNxZElo8c3IM7uB-9BG_ZEL5FCROzJkS6grJLHohAdLk-T2VT3s4dvYbsPqFaJJLM/exec';
 
         function cekInput() {
             const nama = document.getElementById('nama').value.trim();
@@ -60,93 +60,3 @@
             const alamat = document.getElementById('alamat').value;
             const tgl = document.getElementById('tgl_lahir').value;
             const btn = document.getElementById('btnSimpan');
-            const status = document.getElementById('statusSimpan');
-
-            btn.disabled = true;
-            btn.innerText = "Mengirim...";
-
-            try {
-                await fetch(scriptURL, { 
-                    method: 'POST', 
-                    mode: 'no-cors', 
-                    body: JSON.stringify({ nama: nama, alamat: alamat, tgl_lahir: tgl }) 
-                });
-                status.style.color = "#28a745";
-                status.innerText = "✓ Berhasil disimpan!";
-                document.getElementById('nama').value = "";
-                document.getElementById('alamat').value = "";
-                document.getElementById('tgl_lahir').value = "";
-                cekInput();
-            } catch (err) {
-                status.innerText = "Gagal menyimpan.";
-                btn.disabled = false;
-            } finally {
-                btn.innerText = "Simpan Data";
-            }
-        }
-
-        function formatTanggalIndo(teks) {
-            if (!teks) return "-";
-            const date = new Date(teks);
-            if (isNaN(date.getTime()) || teks.length < 5) return teks;
-            const hari = String(date.getDate()).padStart(2, '0');
-            const bulan = String(date.getMonth() + 1).padStart(2, '0');
-            const tahun = date.getFullYear();
-            return `${hari}/${bulan}/${tahun}`;
-        }
-
-        async function cariData() {
-            const input = document.getElementById('cariNama').value;
-            const container = document.getElementById('hasilPencarian');
-            const btn = document.getElementById('btnCari');
-
-            if(!input) {
-                alert("Ketik nama!");
-                return;
-            }
-
-            container.innerHTML = "Mencari...";
-            btn.disabled = true;
-
-            try {
-                const response = await fetch(`${scriptURL}?nama=${encodeURIComponent(input)}`);
-                const data = await response.json();
-
-                if (data.length === 0) {
-                    container.innerHTML = "Data tidak ditemukan.";
-                } else {
-                    container.innerHTML = "";
-                    data.forEach(item => {
-                        const tglFinal = formatTanggalIndo(item.tgl_lahir);
-                        const div = document.createElement('div');
-                        div.className = 'item-hasil';
-                        div.innerHTML = `
-                            <div style="font-size: 14px;">
-                                <strong>Nama:</strong> ${item.nama}<br>
-                                <strong>Alamat:</strong> ${item.alamat}<br>
-                                <strong>Lahir:</strong> ${tglFinal}
-                            </div>
-                            <div class="copy-container">
-                                <button class="btn-copy-small" onclick="copyTeks('${item.nama}', 'Nama')">Copy Nama</button>
-                                <button class="btn-copy-small" onclick="copyTeks('${item.alamat}', 'Alamat')">Copy Alamat</button>
-                                <button class="btn-copy-small" onclick="copyTeks('${tglFinal}', 'Lahir')">Copy Lahir</button>
-                            </div>
-                        `;
-                        container.appendChild(div);
-                    });
-                }
-            } catch (err) {
-                container.innerHTML = "Gagal mengambil data.";
-            } finally {
-                btn.disabled = false;
-            }
-        }
-
-        function copyTeks(teks, tipe) {
-            navigator.clipboard.writeText(teks).then(() => {
-                alert(tipe + " disalin!");
-            });
-        }
-    </script>
-</body>
-</html>

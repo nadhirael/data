@@ -3,77 +3,104 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistem Data Sederhana</title>
+    <title>Sistem Data Pendataan</title>
     <style>
-        body { font-family: 'Segoe UI', sans-serif; background: #f4f7f6; padding: 20px; display: flex; flex-direction: column; align-items: center; }
-        .box { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); width: 100%; max-width: 400px; margin-bottom: 20px; }
-        h3 { margin-top: 0; color: #333; text-align: center; }
-        input { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; font-size: 16px; }
-        button { width: 100%; padding: 12px; border: none; border-radius: 6px; cursor: pointer; color: white; font-weight: bold; font-size: 16px; transition: 0.3s; }
-        .btn-save { background: #28a745; margin-bottom: 10px; }
-        .btn-save:hover { background: #218838; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f0f2f5; padding: 20px; display: flex; flex-direction: column; align-items: center; }
+        .box { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); width: 100%; max-width: 400px; margin-bottom: 20px; }
+        h3 { margin-top: 0; color: #1c1e21; text-align: center; font-size: 20px; border-bottom: 2px solid #eee; padding-bottom: 10px; }
+        label { font-size: 13px; font-weight: bold; color: #606770; display: block; margin-top: 10px; }
+        input { width: 100%; padding: 12px; margin: 5px 0 15px 0; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; font-size: 15px; outline: none; }
+        input:focus { border-color: #007bff; }
+        
+        button { width: 100%; padding: 12px; border: none; border-radius: 8px; cursor: pointer; color: white; font-weight: bold; font-size: 15px; transition: 0.3s; }
+        
+        /* Tombol Simpan */
+        .btn-save { background: #28a745; }
+        .btn-save:hover:not(:disabled) { background: #218838; }
+        .btn-save:disabled { background: #cccccc; cursor: not-allowed; color: #666; }
+        
+        /* Tombol Cari */
         .btn-search { background: #007bff; }
         .btn-search:hover { background: #0056b3; }
-        #hasilPencarian { margin-top: 15px; font-size: 14px; border-top: 1px solid #eee; padding-top: 10px; }
-        .item-hasil { background: #f8f9fa; padding: 12px; margin-bottom: 8px; border-left: 4px solid #007bff; border-radius: 4px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
-        .status-msg { text-align: center; font-size: 13px; margin-top: 5px; }
+        
+        /* Hasil Pencarian */
+        #hasilPencarian { margin-top: 20px; width: 100%; }
+        .item-hasil { background: #ffffff; padding: 15px; margin-bottom: 12px; border-left: 5px solid #007bff; border-radius: 6px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        .copy-container { display: flex; gap: 10px; margin-top: 15px; }
+        .btn-copy-small { background: #6c757d; font-size: 12px; padding: 8px; flex: 1; border-radius: 6px; border: none; color: white; cursor: pointer; }
+        .btn-copy-small:hover { background: #495057; }
+        
+        .status-msg { text-align: center; font-size: 13px; margin-top: 10px; font-weight: 500; }
     </style>
 </head>
 <body>
 
     <div class="box">
         <h3>Input Data Baru</h3>
-        <input type="text" id="nama" placeholder="Ketik Nama...">
-        <input type="text" id="alamat" placeholder="Ketik Alamat...">
-        <button class="btn-save" id="btnSimpan" onclick="kirimData()">Simpan ke Spreadsheet</button>
+        <label>Nama Lengkap</label>
+        <input type="text" id="nama" placeholder="Masukkan nama..." oninput="cekInput()">
+        
+        <label>Alamat</label>
+        <input type="text" id="alamat" placeholder="Masukkan alamat..." oninput="cekInput()">
+        
+        <button class="btn-save" id="btnSimpan" onclick="kirimData()" disabled>Simpan Data</button>
         <div id="statusSimpan" class="status-msg"></div>
     </div>
 
     <div class="box">
         <h3>Cari Data</h3>
-        <input type="text" id="cariNama" placeholder="Masukkan nama yang dicari...">
+        <input type="text" id="cariNama" placeholder="Ketik nama yang ingin dicari...">
         <button class="btn-search" id="btnCari" onclick="cariData()">Cari Sekarang</button>
         <div id="hasilPencarian"></div>
     </div>
 
     <script>
-        // URL Web App Google Script kamu yang terbaru
+        // MASUKKAN URL GOOGLE SCRIPT KAMU DI SINI
         const scriptURL = 'https://script.google.com/macros/s/AKfycbwpQ8Vs0nn8p82f6D7DJPyeVPMajiiHwk4xHomA3kyS-Z5o79q0uOu5--x0M36_UROl/exec';
 
-        // FUNGSI SIMPAN DATA
+        // Fungsi Validasi Input agar tombol hanya aktif jika tidak kosong
+        function cekInput() {
+            const nama = document.getElementById('nama').value.trim();
+            const alamat = document.getElementById('alamat').value.trim();
+            const btn = document.getElementById('btnSimpan');
+            
+            btn.disabled = (nama === "" || alamat === "");
+        }
+
+        // Fungsi Simpan ke Google Sheets
         async function kirimData() {
             const nama = document.getElementById('nama').value;
             const alamat = document.getElementById('alamat').value;
             const btn = document.getElementById('btnSimpan');
             const status = document.getElementById('statusSimpan');
 
-            if(!nama || !alamat) return alert("Harap isi Nama dan Alamat!");
-
             btn.disabled = true;
             btn.innerText = "Mengirim...";
-            status.innerText = "Sedang menyimpan...";
+            status.style.color = "#666";
+            status.innerText = "Sedang menghubungkan ke Sheets...";
 
             try {
-                await fetch(scriptURL, {
-                    method: 'POST',
-                    mode: 'no-cors',
-                    body: JSON.stringify({ nama: nama, alamat: alamat })
+                await fetch(scriptURL, { 
+                    method: 'POST', 
+                    mode: 'no-cors', 
+                    body: JSON.stringify({ nama: nama, alamat: alamat }) 
                 });
                 
-                status.style.color = "green";
-                status.innerText = "Berhasil disimpan ke Sheets!";
+                status.style.color = "#28a745";
+                status.innerText = "✓ Data berhasil disimpan!";
                 document.getElementById('nama').value = "";
                 document.getElementById('alamat').value = "";
+                cekInput(); // Matikan tombol lagi karena input sudah kosong
             } catch (err) {
-                status.style.color = "red";
+                status.style.color = "#dc3545";
                 status.innerText = "Gagal menyimpan data.";
-            } finally {
                 btn.disabled = false;
-                btn.innerText = "Simpan ke Spreadsheet";
+            } finally {
+                btn.innerText = "Simpan Data";
             }
         }
 
-        // FUNGSI CARI DATA
+        // Fungsi Cari Data dari Google Sheets
         async function cariData() {
             const input = document.getElementById('cariNama').value;
             const container = document.getElementById('hasilPencarian');
@@ -81,31 +108,47 @@
 
             if(!input) return alert("Ketik nama untuk mencari!");
 
-            container.innerHTML = "<p style='text-align:center;'>Mencari...</p>";
+            container.innerHTML = "<p style='text-align:center; color:#666;'>Mencari data...</p>";
             btn.disabled = true;
 
             try {
-                // Memanggil doGet di Apps Script
                 const response = await fetch(`${scriptURL}?nama=${encodeURIComponent(input)}`);
                 const data = await response.json();
 
                 if (data.length === 0) {
-                    container.innerHTML = "<p style='text-align:center; color:red;'>Data tidak ditemukan.</p>";
+                    container.innerHTML = "<p style='text-align:center; color:#dc3545;'>Data tidak ditemukan.</p>";
                 } else {
                     container.innerHTML = "";
                     data.forEach(item => {
                         const div = document.createElement('div');
                         div.className = 'item-hasil';
-                        div.innerHTML = `<strong>Nama:</strong> ${item.nama}<br><strong>Alamat:</strong> ${item.alamat}`;
+                        div.innerHTML = `
+                            <div style="font-size: 14px; color: #1c1e21;">
+                                <strong>Nama:</strong> ${item.nama}<br>
+                                <strong>Alamat:</strong> ${item.alamat}
+                            </div>
+                            <div class="copy-container">
+                                <button class="btn-copy-small" onclick="copyTeks('${item.nama}', 'Nama')">Copy Nama</button>
+                                <button class="btn-copy-small" onclick="copyTeks('${item.alamat}', 'Alamat')">Copy Alamat</button>
+                            </div>
+                        `;
                         container.appendChild(div);
                     });
                 }
             } catch (err) {
-                container.innerHTML = "<p style='text-align:center; color:red;'>Gagal mengambil data.</p>";
-                console.error(err);
+                container.innerHTML = "<p style='text-align:center; color:#dc3545;'>Gagal mengambil data.</p>";
             } finally {
                 btn.disabled = false;
             }
+        }
+
+        // Fungsi Salin Teks per Bagian
+        function copyTeks(teks, tipe) {
+            navigator.clipboard.writeText(teks).then(() => {
+                alert(tipe + " berhasil disalin!");
+            }).catch(err => {
+                console.error('Gagal copy: ', err);
+            });
         }
     </script>
 </body>

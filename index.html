@@ -74,14 +74,12 @@
 
     <canvas id="matrix-bg"></canvas>
 
-    <!-- DASHBOARD -->
     <div class="stats-bar">
         <div class="stats-item">TOTAL_DB <span id="stat-total" class="stats-val">0</span></div>
         <div class="stats-item">COMPLETED <span id="stat-done" class="stats-val">0</span></div>
         <div class="stats-item">PENDING <span id="stat-pending" class="stats-val">0</span></div>
     </div>
 
-    <!-- MENU -->
     <div class="tab-container">
         <button class="tab-btn active" onclick="openTab('single')">SINGLE</button>
         <button class="tab-btn" onclick="openTab('bulk')">BULK</button>
@@ -98,7 +96,7 @@
 
     <div id="bulk" class="box">
         <h3 class="glitch">> BULK_MODULE</h3>
-        <textarea id="bulkData" placeholder="Paste dari Excel: Nama [TAB] Alamat [TAB] TglLahir"></textarea>
+        <textarea id="bulkData" placeholder="Paste: Nama [TAB] Alamat [TAB] TglLahir"></textarea>
         <button id="btnBulk" class="main-btn" onclick="kirimBulk()">START_BULK_PROCESS</button>
         <div id="bulk-log">Menunggu input...</div>
     </div>
@@ -111,8 +109,7 @@
     </div>
 
     <script>
-        // URL SCRIPT TERBARU KAMU
-        const scriptURL = 'https://script.google.com/macros/s/AKfycbx56wlB-zXcjKf9l0UxXjps3FD7rljIZwh4J-rvYIGkfmK48uIoGP8RW-21K8hCZFRG/exec';
+        const scriptURL = 'https://script.google.com/macros/s/AKfycbyA4gZv--7LXdpUalCC-eOkFTWcG_MiMn8yamNBXYxoPhlKrdVqfmXUxAQs83p2EkDD/exec';
 
         window.onload = loadStats;
 
@@ -125,7 +122,7 @@
                 document.getElementById('stat-total').innerText = total;
                 document.getElementById('stat-done').innerText = done;
                 document.getElementById('stat-pending').innerText = total - done;
-            } catch (e) { console.log("Stats loading..."); }
+            } catch (e) { console.log("Stats syncing..."); }
         }
 
         function openTab(tabId) {
@@ -135,7 +132,6 @@
             event.currentTarget.classList.add('active');
         }
 
-        // Matrix Background
         const canvas = document.getElementById('matrix-bg');
         const ctx = canvas.getContext('2d');
         canvas.height = window.innerHeight; canvas.width = window.innerWidth;
@@ -163,20 +159,20 @@
                 alamat: document.getElementById('alamat').value, 
                 tgl_lahir: document.getElementById('tgl_lahir').value 
             })});
-            alert("SUCCESS"); location.reload();
+            alert("UPLOAD SUCCESS"); location.reload();
         }
 
         async function kirimBulk() {
             const text = document.getElementById('bulkData').value.trim();
             const log = document.getElementById('bulk-log');
             if(!text) return;
-            const lines = text.split('\n');
             const btn = document.getElementById('btnBulk');
+            const lines = text.split('\n');
             btn.disabled = true;
             for (let line of lines) {
                 const parts = line.split('\t');
                 if (parts.length < 2) continue;
-                log.innerHTML += `> Uploading: ${parts[0]}...<br>`;
+                log.innerHTML += `> Processing: ${parts[0]}...<br>`;
                 log.scrollTop = log.scrollHeight;
                 await fetch(scriptURL, { method: 'POST', mode: 'no-cors', body: JSON.stringify({ 
                     nama: parts[0]?.trim(), alamat: parts[1]?.trim(), tgl_lahir: parts[2]?.trim() || "-" 
@@ -209,23 +205,29 @@
                     `;
                     container.appendChild(div);
                 });
-            } catch(e) { container.innerHTML = "> ERROR: SCRIPT_NOT_RESPONDING"; }
+            } catch(e) { container.innerHTML = "> ERROR: SERVER_UNREACHABLE"; }
         }
 
         async function markDone(n, a, b) {
-            if(!confirm("Tandai 'PROSESSED' untuk target ini?")) return;
-            b.innerText = "..."; b.disabled = true;
+            if(!confirm("Tandai target sebagai PROSESSED?")) return;
+            b.innerText = "WAIT..."; b.disabled = true;
             try {
                 await fetch(scriptURL, { 
                     method: 'POST', 
                     mode: 'no-cors', 
                     body: JSON.stringify({ action: "updateStatus", nama: n, alamat: a }) 
                 });
-                setTimeout(() => { 
-                    loadStats();
-                    cariData(); 
-                }, 1000);
-            } catch(e) { alert("FAILED_TO_UPDATE"); b.innerText = "MARK"; b.disabled = false; }
+                
+                // Jeda 2 detik agar Google Sheets selesai menulis
+                setTimeout(async () => {
+                    await loadStats();
+                    await cariData();
+                    alert("STATUS UPDATED");
+                }, 2000);
+            } catch(e) { 
+                alert("CONNECTION ERROR"); 
+                b.innerText = "MARK"; b.disabled = false;
+            }
         }
 
         function copy(t) { navigator.clipboard.writeText(t); }

@@ -28,6 +28,7 @@
         .stats-item { text-align: center; }
         .stats-val { display: block; font-size: 14px; color: #fff; }
 
+        /* TAB MENU */
         .tab-container { display: flex; gap: 5px; margin-bottom: 20px; width: 100%; max-width: 500px; }
         .tab-btn { 
             flex: 1; padding: 10px; background: transparent; border: 1px solid var(--neon-green); 
@@ -73,12 +74,14 @@
 
     <canvas id="matrix-bg"></canvas>
 
+    <!-- DASHBOARD -->
     <div class="stats-bar">
         <div class="stats-item">TOTAL_DB <span id="stat-total" class="stats-val">0</span></div>
         <div class="stats-item">COMPLETED <span id="stat-done" class="stats-val">0</span></div>
         <div class="stats-item">PENDING <span id="stat-pending" class="stats-val">0</span></div>
     </div>
 
+    <!-- MENU -->
     <div class="tab-container">
         <button class="tab-btn active" onclick="openTab('single')">SINGLE</button>
         <button class="tab-btn" onclick="openTab('bulk')">BULK</button>
@@ -95,35 +98,34 @@
 
     <div id="bulk" class="box">
         <h3 class="glitch">> BULK_MODULE</h3>
-        <textarea id="bulkData" placeholder="Nama [TAB] Alamat [TAB] TglLahir"></textarea>
+        <textarea id="bulkData" placeholder="Paste dari Excel: Nama [TAB] Alamat [TAB] TglLahir"></textarea>
         <button id="btnBulk" class="main-btn" onclick="kirimBulk()">START_BULK_PROCESS</button>
         <div id="bulk-log">Menunggu input...</div>
     </div>
 
     <div id="search" class="box">
         <h3 class="glitch">> DB_SCANNER</h3>
-        <input type="text" id="cariNama" placeholder="TYPE_TARGET_NAME...">
+        <input type="text" id="cariNama" placeholder="Cari Nama...">
         <button class="main-btn" onclick="cariData()">SCAN_DATABASE</button>
         <div id="hasilPencarian" style="margin-top: 20px;"></div>
     </div>
 
     <script>
-        const scriptURL = 'https://script.google.com/macros/s/AKfycbxd2HCKHtol2q_uOFGdu0LMSbdaqFuvVXpeMJN07deDA3kxM-jTLtiwg22yAp_tVeM8/exec';
+        // URL SCRIPT TERBARU KAMU
+        const scriptURL = 'https://script.google.com/macros/s/AKfycbx56wlB-zXcjKf9l0UxXjps3FD7rljIZwh4J-rvYIGkfmK48uIoGP8RW-21K8hCZFRG/exec';
 
         window.onload = loadStats;
 
         async function loadStats() {
             try {
-                // Kita panggil search kosong untuk dapet semua data (limitasi Apps Script)
                 const response = await fetch(`${scriptURL}?nama=`);
                 const data = await response.json();
                 const total = data.length;
                 const done = data.filter(i => i.status === "PROSESSED").length;
-                
                 document.getElementById('stat-total').innerText = total;
                 document.getElementById('stat-done').innerText = done;
                 document.getElementById('stat-pending').innerText = total - done;
-            } catch (e) { console.error("Stats error"); }
+            } catch (e) { console.log("Stats loading..."); }
         }
 
         function openTab(tabId) {
@@ -133,6 +135,7 @@
             event.currentTarget.classList.add('active');
         }
 
+        // Matrix Background
         const canvas = document.getElementById('matrix-bg');
         const ctx = canvas.getContext('2d');
         canvas.height = window.innerHeight; canvas.width = window.innerWidth;
@@ -149,17 +152,18 @@
         function cekInput() {
             const n = document.getElementById('nama').value.trim();
             const a = document.getElementById('alamat').value.trim();
-            const t = document.getElementById('tgl_lahir').value.trim();
-            document.getElementById('btnSimpan').disabled = (n === "" || a === "" || t === "");
+            document.getElementById('btnSimpan').disabled = (n === "" || a === "");
         }
 
         async function kirimData() {
             const btn = document.getElementById('btnSimpan');
-            btn.innerText = "SENDING...";
+            btn.innerText = "SENDING..."; btn.disabled = true;
             await fetch(scriptURL, { method: 'POST', mode: 'no-cors', body: JSON.stringify({ 
-                nama: document.getElementById('nama').value, alamat: document.getElementById('alamat').value, tgl_lahir: document.getElementById('tgl_lahir').value 
+                nama: document.getElementById('nama').value, 
+                alamat: document.getElementById('alamat').value, 
+                tgl_lahir: document.getElementById('tgl_lahir').value 
             })});
-            alert("UPLOADED"); location.reload();
+            alert("SUCCESS"); location.reload();
         }
 
         async function kirimBulk() {
@@ -167,10 +171,13 @@
             const log = document.getElementById('bulk-log');
             if(!text) return;
             const lines = text.split('\n');
+            const btn = document.getElementById('btnBulk');
+            btn.disabled = true;
             for (let line of lines) {
                 const parts = line.split('\t');
                 if (parts.length < 2) continue;
                 log.innerHTML += `> Uploading: ${parts[0]}...<br>`;
+                log.scrollTop = log.scrollHeight;
                 await fetch(scriptURL, { method: 'POST', mode: 'no-cors', body: JSON.stringify({ 
                     nama: parts[0]?.trim(), alamat: parts[1]?.trim(), tgl_lahir: parts[2]?.trim() || "-" 
                 })});
@@ -182,32 +189,43 @@
             const input = document.getElementById('cariNama').value;
             const container = document.getElementById('hasilPencarian');
             container.innerHTML = "> SCANNING...";
-            const response = await fetch(`${scriptURL}?nama=${encodeURIComponent(input)}`);
-            const data = await response.json();
-            container.innerHTML = "";
-            data.forEach(item => {
-                const isDone = item.status === "PROSESSED";
-                const div = document.createElement('div');
-                div.className = `item-hasil ${isDone ? 'is-done' : ''}`;
-                div.innerHTML = `
-                    ${isDone ? '<div class="tag-done">[COMPLETED]</div>' : ''}
-                    <div style="font-size: 13px;">[N]: ${item.nama}<br>[A]: ${item.alamat}<br>[D]: ${item.tgl_lahir}</div>
-                    <div class="copy-container">
-                        <button class="btn-small" onclick="copy('${item.nama}')">CPY_N</button>
-                        <button class="btn-small" onclick="copy('${item.alamat}')">CPY_A</button>
-                        <button class="btn-small" onclick="copy('${item.tgl_lahir}')">CPY_D</button>
-                        ${!isDone ? `<button class="btn-mark" onclick="mark('${item.nama}', '${item.alamat}', this)">MARK</button>` : ''}
-                    </div>
-                `;
-                container.appendChild(div);
-            });
+            try {
+                const response = await fetch(`${scriptURL}?nama=${encodeURIComponent(input)}`);
+                const data = await response.json();
+                container.innerHTML = "";
+                data.forEach(item => {
+                    const isDone = item.status === "PROSESSED";
+                    const div = document.createElement('div');
+                    div.className = `item-hasil ${isDone ? 'is-done' : ''}`;
+                    div.innerHTML = `
+                        ${isDone ? '<div class="tag-done">[COMPLETED]</div>' : ''}
+                        <div style="font-size: 13px;">[N]: ${item.nama}<br>[A]: ${item.alamat}<br>[D]: ${item.tgl_lahir}</div>
+                        <div class="copy-container">
+                            <button class="btn-small" onclick="copy('${item.nama}')">CPY_N</button>
+                            <button class="btn-small" onclick="copy('${item.alamat}')">CPY_A</button>
+                            <button class="btn-small" onclick="copy('${item.tgl_lahir}')">CPY_D</button>
+                            ${!isDone ? `<button class="btn-mark" onclick="markDone('${item.nama}', '${item.alamat}', this)">MARK</button>` : ''}
+                        </div>
+                    `;
+                    container.appendChild(div);
+                });
+            } catch(e) { container.innerHTML = "> ERROR: SCRIPT_NOT_RESPONDING"; }
         }
 
-        async function mark(n, a, b) {
-            b.innerText = "...";
-            await fetch(scriptURL, { method: 'POST', mode: 'no-cors', body: JSON.stringify({ action: "updateStatus", nama: n, alamat: a }) });
-            loadStats(); // Update statistik setelah marking
-            cariData();
+        async function markDone(n, a, b) {
+            if(!confirm("Tandai 'PROSESSED' untuk target ini?")) return;
+            b.innerText = "..."; b.disabled = true;
+            try {
+                await fetch(scriptURL, { 
+                    method: 'POST', 
+                    mode: 'no-cors', 
+                    body: JSON.stringify({ action: "updateStatus", nama: n, alamat: a }) 
+                });
+                setTimeout(() => { 
+                    loadStats();
+                    cariData(); 
+                }, 1000);
+            } catch(e) { alert("FAILED_TO_UPDATE"); b.innerText = "MARK"; b.disabled = false; }
         }
 
         function copy(t) { navigator.clipboard.writeText(t); }

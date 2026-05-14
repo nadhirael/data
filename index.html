@@ -19,7 +19,6 @@
 
         #matrix-bg { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; opacity: 0.15; }
 
-        /* DASHBOARD STATISTIK */
         .stats-bar {
             width: 100%; max-width: 500px; background: rgba(0, 255, 65, 0.1);
             border: 1px dashed var(--neon-green); padding: 10px; margin-bottom: 20px;
@@ -28,7 +27,6 @@
         .stats-item { text-align: center; }
         .stats-val { display: block; font-size: 14px; color: #fff; }
 
-        /* TAB MENU */
         .tab-container { display: flex; gap: 5px; margin-bottom: 20px; width: 100%; max-width: 500px; }
         .tab-btn { 
             flex: 1; padding: 10px; background: transparent; border: 1px solid var(--neon-green); 
@@ -109,7 +107,8 @@
     </div>
 
     <script>
-        const scriptURL = 'https://script.google.com/macros/s/AKfycbyA4gZv--7LXdpUalCC-eOkFTWcG_MiMn8yamNBXYxoPhlKrdVqfmXUxAQs83p2EkDD/exec';
+        // URL SCRIPT BARU
+        const scriptURL = 'https://script.google.com/macros/s/AKfycbwM5LInq3gd_tUbNTnK4CuNczZ2a1FLCNtsflqrdmR_XkoGlmx_I83Aj2h8QKTO-m3x/exec';
 
         window.onload = loadStats;
 
@@ -210,6 +209,7 @@
 
         async function markDone(n, a, b) {
             if(!confirm("Tandai target sebagai PROSESSED?")) return;
+            const originalText = b.innerText;
             b.innerText = "WAIT..."; b.disabled = true;
             try {
                 await fetch(scriptURL, { 
@@ -218,15 +218,14 @@
                     body: JSON.stringify({ action: "updateStatus", nama: n, alamat: a }) 
                 });
                 
-                // Jeda 2 detik agar Google Sheets selesai menulis
                 setTimeout(async () => {
                     await loadStats();
                     await cariData();
-                    alert("STATUS UPDATED");
+                    alert("STATUS_LOCKED");
                 }, 2000);
             } catch(e) { 
                 alert("CONNECTION ERROR"); 
-                b.innerText = "MARK"; b.disabled = false;
+                b.innerText = originalText; b.disabled = false;
             }
         }
 

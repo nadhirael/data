@@ -94,21 +94,20 @@
 
     <div id="bulk" class="box">
         <h3 class="glitch">> BULK_MODULE</h3>
-        <textarea id="bulkData" placeholder="Paste: Nama [TAB] Alamat [TAB] TglLahir"></textarea>
+        <textarea id="bulkData" placeholder="Nama [TAB] Alamat [TAB] TglLahir"></textarea>
         <button id="btnBulk" class="main-btn" onclick="kirimBulk()">START_BULK_PROCESS</button>
         <div id="bulk-log">Menunggu input...</div>
     </div>
 
     <div id="search" class="box">
         <h3 class="glitch">> DB_SCANNER</h3>
-        <input type="text" id="cariNama" placeholder="Cari Nama...">
+        <input type="text" id="cariNama" placeholder="TYPE_TARGET_NAME...">
         <button class="main-btn" onclick="cariData()">SCAN_DATABASE</button>
         <div id="hasilPencarian" style="margin-top: 20px;"></div>
     </div>
 
     <script>
-        // URL SCRIPT BARU
-        const scriptURL = 'https://script.google.com/macros/s/AKfycbwM5LInq3gd_tUbNTnK4CuNczZ2a1FLCNtsflqrdmR_XkoGlmx_I83Aj2h8QKTO-m3x/exec';
+        const scriptURL = 'https://script.google.com/macros/s/AKfycbwExkIQna9JNkeu29QCXh4iK-w7ketD4Y4b-TPtboFYXIIoCWwlayYpJN7U7jvLzuVG/exec';
 
         window.onload = loadStats;
 
@@ -118,10 +117,11 @@
                 const data = await response.json();
                 const total = data.length;
                 const done = data.filter(i => i.status === "PROSESSED").length;
+                
                 document.getElementById('stat-total').innerText = total;
                 document.getElementById('stat-done').innerText = done;
                 document.getElementById('stat-pending').innerText = total - done;
-            } catch (e) { console.log("Stats syncing..."); }
+            } catch (e) { console.log("Syncing stats..."); }
         }
 
         function openTab(tabId) {
@@ -131,6 +131,7 @@
             event.currentTarget.classList.add('active');
         }
 
+        // Matrix Bg
         const canvas = document.getElementById('matrix-bg');
         const ctx = canvas.getContext('2d');
         canvas.height = window.innerHeight; canvas.width = window.innerWidth;
@@ -154,25 +155,20 @@
             const btn = document.getElementById('btnSimpan');
             btn.innerText = "SENDING..."; btn.disabled = true;
             await fetch(scriptURL, { method: 'POST', mode: 'no-cors', body: JSON.stringify({ 
-                nama: document.getElementById('nama').value, 
-                alamat: document.getElementById('alamat').value, 
-                tgl_lahir: document.getElementById('tgl_lahir').value 
+                nama: document.getElementById('nama').value, alamat: document.getElementById('alamat').value, tgl_lahir: document.getElementById('tgl_lahir').value 
             })});
-            alert("UPLOAD SUCCESS"); location.reload();
+            alert("UPLOADED"); location.reload();
         }
 
         async function kirimBulk() {
             const text = document.getElementById('bulkData').value.trim();
             const log = document.getElementById('bulk-log');
             if(!text) return;
-            const btn = document.getElementById('btnBulk');
             const lines = text.split('\n');
-            btn.disabled = true;
             for (let line of lines) {
                 const parts = line.split('\t');
                 if (parts.length < 2) continue;
-                log.innerHTML += `> Processing: ${parts[0]}...<br>`;
-                log.scrollTop = log.scrollHeight;
+                log.innerHTML += `> Uploading: ${parts[0]}...<br>`;
                 await fetch(scriptURL, { method: 'POST', mode: 'no-cors', body: JSON.stringify({ 
                     nama: parts[0]?.trim(), alamat: parts[1]?.trim(), tgl_lahir: parts[2]?.trim() || "-" 
                 })});
@@ -184,32 +180,29 @@
             const input = document.getElementById('cariNama').value;
             const container = document.getElementById('hasilPencarian');
             container.innerHTML = "> SCANNING...";
-            try {
-                const response = await fetch(`${scriptURL}?nama=${encodeURIComponent(input)}`);
-                const data = await response.json();
-                container.innerHTML = "";
-                data.forEach(item => {
-                    const isDone = item.status === "PROSESSED";
-                    const div = document.createElement('div');
-                    div.className = `item-hasil ${isDone ? 'is-done' : ''}`;
-                    div.innerHTML = `
-                        ${isDone ? '<div class="tag-done">[COMPLETED]</div>' : ''}
-                        <div style="font-size: 13px;">[N]: ${item.nama}<br>[A]: ${item.alamat}<br>[D]: ${item.tgl_lahir}</div>
-                        <div class="copy-container">
-                            <button class="btn-small" onclick="copy('${item.nama}')">CPY_N</button>
-                            <button class="btn-small" onclick="copy('${item.alamat}')">CPY_A</button>
-                            <button class="btn-small" onclick="copy('${item.tgl_lahir}')">CPY_D</button>
-                            ${!isDone ? `<button class="btn-mark" onclick="markDone('${item.nama}', '${item.alamat}', this)">MARK</button>` : ''}
-                        </div>
-                    `;
-                    container.appendChild(div);
-                });
-            } catch(e) { container.innerHTML = "> ERROR: SERVER_UNREACHABLE"; }
+            const response = await fetch(`${scriptURL}?nama=${encodeURIComponent(input)}`);
+            const data = await response.json();
+            container.innerHTML = "";
+            data.forEach(item => {
+                const isDone = item.status === "PROSESSED";
+                const div = document.createElement('div');
+                div.className = `item-hasil ${isDone ? 'is-done' : ''}`;
+                div.innerHTML = `
+                    ${isDone ? '<div class="tag-done">[COMPLETED]</div>' : ''}
+                    <div style="font-size: 13px;">[N]: ${item.nama}<br>[A]: ${item.alamat}<br>[D]: ${item.tgl_lahir}</div>
+                    <div class="copy-container">
+                        <button class="btn-small" onclick="copy('${item.nama}')">CPY_N</button>
+                        <button class="btn-small" onclick="copy('${item.alamat}')">CPY_A</button>
+                        <button class="btn-small" onclick="copy('${item.tgl_lahir}')">CPY_D</button>
+                        ${!isDone ? `<button class="btn-mark" onclick="markDone('${item.nama}', '${item.alamat}', this)">MARK</button>` : ''}
+                    </div>
+                `;
+                container.appendChild(div);
+            });
         }
 
         async function markDone(n, a, b) {
-            if(!confirm("Tandai target sebagai PROSESSED?")) return;
-            const originalText = b.innerText;
+            if(!confirm("Tandai target PROSESSED?")) return;
             b.innerText = "WAIT..."; b.disabled = true;
             try {
                 await fetch(scriptURL, { 
@@ -217,15 +210,15 @@
                     mode: 'no-cors', 
                     body: JSON.stringify({ action: "updateStatus", nama: n, alamat: a }) 
                 });
-                
+                // Jeda 2.5 detik agar Google Sheets selesai menulis sebelum refresh
                 setTimeout(async () => {
                     await loadStats();
                     await cariData();
-                    alert("STATUS_LOCKED");
-                }, 2000);
-            } catch(e) { 
-                alert("CONNECTION ERROR"); 
-                b.innerText = originalText; b.disabled = false;
+                    alert("TARGET_LOCKED");
+                }, 2500);
+            } catch(e) {
+                alert("ERR_CONN");
+                b.innerText = "MARK"; b.disabled = false;
             }
         }
 
